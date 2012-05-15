@@ -1,7 +1,7 @@
 spiel
 =====
 
-A markdown/jsdoc tool for html/css/js written as a nodejs module
+A markdown/jsdoc weapon written as a nodejs CLI.
 
 The purpose of this documentation tool is for a requirement; to treat markdown and jsdoc as one, when writing code comments and descriptions.
 

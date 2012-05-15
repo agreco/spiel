@@ -1,11 +1,11 @@
-
+#!/usr/bin/env node
 
 var path = require('path'),
     fs = require('fs'),
     markdown = require('github-flavored-markdown').parse,
-    dtils = require('./lib/docco'),
-    dox = require('./lib/dox'),
-    defaultTemplatePath = 'template/default',
+    dtils = require('../lib/docco'),
+    dox = require('../lib/dox'),
+    defaultTemplatePath = '../template/default',
     options,
     files,
     h1stuff,
@@ -146,7 +146,7 @@ var path = require('path'),
         }
 
         if(!options.template){
-            options.template = defaultTemplatePath;
+            options.template = path.resolve(__dirname, defaultTemplatePath);
         }
 
         dtils.import_js(options);
