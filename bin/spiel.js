@@ -56,7 +56,8 @@ var path = require('path'),
             try{
                 content = dox.parseComments(content);
             }catch(e){
-                /*console.dir('ERROR '+file);console.dir(e);*/
+                console.dir('ERROR '+file);
+                console.dir(e);
             }
 
             try{
