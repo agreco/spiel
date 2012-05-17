@@ -30,7 +30,9 @@ out
 
   specs = dtils.flatten_files([options.specs])
 
-  specs.forEach (spec) -> files.push(spec)
+  specs.forEach (spec) ->
+    files.push(spec)
+    return
 
   files = files.filter (file) -> file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
 
@@ -43,172 +45,115 @@ out
 
   files = files.map (file) -> # read files
     content = fs.readFileSync(file, "utf8").toString()
-    description
+    description = null
     source = []
 
-    if file.match(/\.(js)$/)
+    if file.match(/\.(js)$/) # JS files
       fileAudit.js++
-
       content = dox.parseComments(content)
-      description = content[0].description.full
 
-    ###
-    try{
-      content = dox.parseComments(content);
-    }catch(e){
-      console.dir('ERROR '+file);
-      console.dir(e);
-    }
+      if content and content[0] isnt undefined
+        description = content[0].description.full
 
-    try{
-      description = content[0].description.full;
-    }catch(e){
-      /*console.dir('ERROR '+file);console.dir(e);*/
-    }
-    ###
-
-    ###content.forEach(function(item){
-      source.push({
-        tags:item.tags,
-        isPrivate:item.isPrivate,
-        ignore:item.ignore,
-        code:item.code,
-        summary:item.description.summary,
-        ctx:item.ctx
+      content.forEach (item) ->
+        source.push({
+          tags      : item.tags
+          isPrivate : item.isPrivate
+          ignore    : item.ignore
+          code      : item.code
+          summary   : item.description.summary
+          ctx       : item.ctx
         })
-    });###
+        return
 
-    ###try{
-    content.forEach(function(item){
-    source.push({
-      tags:item.tags,
-      isPrivate:item.isPrivate,
-      ignore:item.ignore,
-      code:item.code,
-      summary:item.description.summary,
-      ctx:item.ctx
-      })
-    });
-    }catch(e){
-      /*console.dir('ERROR '+file);console.dir(e);*/
-    }###
+    else if file.match(/\.(markdown|md|md(own))$/)  # Markdown files
+      fileAudit.markdown++
+      content =  markdown(content)
+      description = content
 
-  ###else if file.match(/\.(markdown|md|md(own))$/)
-    fileAudit.markdown++
-    content =  markdown(content)
-    description = content
+    else if file.match(/\.(sass)$/)  # SaSS CSS files
+      fileAudit.sass++
 
-  else if file.match(/\.(sass)$/)  # How to compile documentation for Sass CSS files
-    fileAudit.sass++
+      content = dox.parseComments(content);
 
-  content = dox.parseComments(content);###
+      description = content[0].description.full;
 
-    ###try{
-    content = dox.parseComments(content);
-    }catch(e){
-      /*console.dir('ERROR '+file);console.dir(e);*/
-    }###
+      content.forEach (item) ->
+        source.push({
+          code    :item.code
+          summary :item.description.summary
+        })
+        return
 
-#  description = content[0].description.full;
-    ###try{
-    description = content[0].description.full;
-    }catch(e){
-      /*console.dir('ERROR '+file);console.dir(e);*/
-    }###
-
-###  content.forEach(function(item){
-    source.push({
-        code:item.code,
-        summary:item.description.summary
-      })
-  });###
-
-    {
+    return {
       filepath: file,
       name: dtils.munge_filename(file),
       content: description,
-      source: source.length < 1 ? null : source
+      source: if source.length < 1 then null else source
     }
 
-###
-fileAudit.parsed  = (fileAudit.js + fileAudit.markdown + fileAudit.sass);
-fileAudit.ignored = fileAudit.total - fileAudit.parsed;
+  fileAudit.parsed  = (fileAudit.js + fileAudit.markdown + fileAudit.sass)
+  fileAudit.ignored = fileAudit.total - fileAudit.parsed
 
-for(var i = 0, file, len = files.length; i < len; ++i){
-file = files[i];
-if(file.source !== null){
-  for(var j = 0, source, jen = file.source.length; j < jen; ++j){
-  source = files[i].source[j];
-  if(j == 0){
-  source.summary = null;
-  }
-  if(source.isPrivate !== undefined && source.isPrivate === false && source.code !== undefined){
-    if(source.tags.length){
-    source.code = [dtils.format_code(source)].join('\n');
-    }
-  }
-}
-}
-}
+  files.forEach (file) ->
+    if file.source isnt null
+      file.source.forEach (source, j) ->
+        if j is 0
+          source.summary = null
+        if source.isPrivate isnt undefined and source.isPrivate is false and source.code isnt undefined
+          if source.tags.length
+            source.code = [dtils.format_code(source)].join('\n')
+    return
 
-h1stuff = dtils.h1finder(files);
-linked_files = dtils.autolink(files, h1stuff.h1s, options.output);
-index = dtils.indexer(h1stuff.h1s, options.output);
+  h1stuff = dtils.h1finder(files)
+  linked_files = dtils.autolink(files, h1stuff.h1s, options.output)
+  index = dtils.indexer(h1stuff.h1s, options.output)
 
-if (options.output) { // destination option is supplied.
-if (!path.existsSync(options.output)) { // the destination dir doesn't exist, create it.
-fs.mkdirSync(options.output, 0777);
-}
+  if options.output # destination option is supplied.
 
-if(!options.template){
-options.template = path.resolve(__dirname, defaultTemplatePath);
-}
+    if !path.existsSync(options.output) # the destination dir doesn't exist, create it.
+      fs.mkdirSync(options.output, 0777)
 
-dtils.import_js(options);
-dtils.import_css(options);
-template = fs.readFileSync(options.template+'/index.html', "utf8").toString();
+    if options.template is undefined
+      options.template = path.resolve(__dirname, defaultTemplatePath)
 
-/*if (options.toc) { // toclink the incoming files
-var toc = fs.readFileSync(options.toc, "utf8").toString().split("\n");
-var marked_toc = markdown(dtils.toclinker(toc, files));
-files.push({
-name:"index",
-content: marked_toc
-});
-}*/
+    dtils.import_js(options);
+    dtils.import_css(options);
+    template = fs.readFileSync(options.template+'/index.html', "utf8").toString()
 
-if (options.index) { // add index
-linked_files.push({
-name:"_index.html",
-content:index,
-source:null
-});
-}
+    ###
+    if options.toc # toclink the incoming files
+      toc = fs.readFileSync(options.toc, "utf8").toString().split("\n")
+      marked_toc = markdown(dtils.toclinker(toc, files))
+      files.push({
+        name:"index",
+        content: marked_toc
+      })
+    ###
 
-for (i = 0, len = linked_files.length; i < len; i++) {
-var api = null;
+    if options.index # add index
+      linked_files.push({
+        name:"_index.html"
+        content:index
+        source:null
+      })
 
-if(linked_files[i].source !== null){
-api = linked_files[i].source;
-}
+    linked_files.forEach (linked_file) ->
+      api = null
 
-out = dtils.template_render(linked_files[i].content, api, linked_files[i].filepath, template);
+      if linked_file.source isnt null
+        api = linked_file.source
 
-try{
-fs.writeFileSync(path.join(options.output, linked_files[i].name), out, 'utf8');
-/*console.log('Wrote '+linked_files[i].name);*/
-}catch(e){
-  /*console.log('write ERROR');console.dir(e);*/
-}
+      out = dtils.template_render(linked_file.content, api, linked_file.filepath, template);
 
-//try{fs.closeSync(path.join(options.output, linked_files[i].name));}catch(e){console.log('close ERROR');console.dir(e);}
-}
-}
+      fs.writeFileSync(path.join(options.output, linked_file.name), out, 'utf8');
 
-// File Audit Output
-console.log('File Audit');
-console.log('==========');
-console.dir(fileAudit);
-###
+      return
+
+  # File Audit Output
+  console.log('File Audit');
+  console.log('==========');
+  console.dir(fileAudit);
+  return
 
 )()
