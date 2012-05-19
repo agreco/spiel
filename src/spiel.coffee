@@ -6,13 +6,13 @@ markdown = require('github-flavored-markdown').parse
 dtils = require('../lib/docco')
 dox = require('../lib/dox')
 defaultTemplatePath = '../template/default'
-options
-files
-h1stuff
-linked_files
-index
-template
-out
+options = null
+files = null
+h1stuff = null
+linked_files = null
+index = null
+template = null
+out = null
 
 (() ->
   options = dtils.getOpts({})
