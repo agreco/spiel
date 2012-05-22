@@ -52,34 +52,18 @@ var path = require('path'),
 
         if (file.match(/\.(js)$/)) {
             fileAudit.js++;
-
-            try{
-                content = dox.parseComments(content);
-            }catch(e){
-                console.dir('ERROR '+file);
-                console.dir(e);
-            }
-
-            try{
-                description = content[0].description.full;
-            }catch(e){
-                /*console.dir('ERROR '+file);console.dir(e);*/
-            }
-
-            try{
-                content.forEach(function(item){
-                    source.push({
-                        tags:item.tags,
-                        isPrivate:item.isPrivate,
-                        ignore:item.ignore,
-                        code:item.code,
-                        summary:item.description.summary,
-                        ctx:item.ctx
-                    })
-                });
-            }catch(e){
-                /*console.dir('ERROR '+file);console.dir(e);*/
-            }
+            content = dox.parseComments(content);
+						description = content[0].description.full;
+            content.forEach(function(item){
+                source.push({
+                    tags:item.tags,
+                    isPrivate:item.isPrivate,
+                    ignore:item.ignore,
+                    code:item.code,
+                    summary:item.description.summary,
+                    ctx:item.ctx
+                })
+            });
 
         }else if(file.match(/\.(markdown|md|md(own))$/)){
             fileAudit.markdown++;
@@ -88,25 +72,15 @@ var path = require('path'),
 
         }else if(file.match(/\.(sass)$/)){ // How to compile documentation for Sass CSS files
             fileAudit.sass++;
-
-            try{
-                content = dox.parseComments(content);
-            }catch(e){
-                /*console.dir('ERROR '+file);console.dir(e);*/
-            }
-
-            try{
-                description = content[0].description.full;
-            }catch(e){
-                /*console.dir('ERROR '+file);console.dir(e);*/
-            }
-
+						content = dox.parseComments(content);
+            description = content[0].description.full;
             content.forEach(function(item){
                 source.push({
                     code:item.code,
                     summary:item.description.summary
                 })
             });
+
         }
 
         return {
