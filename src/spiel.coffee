@@ -6,13 +6,13 @@ markdown = require('github-flavored-markdown').parse
 dtils = require('../lib/docco')
 dox = require('../lib/dox')
 defaultTemplatePath = '../template/default'
-options
-files
-h1stuff
-linked_files
-index
-template
-out
+options = null
+files = null
+h1stuff = null
+linked_files = null
+index = null
+template = null
+out = null
 
 (() ->
   options = dtils.getOpts({})
@@ -30,9 +30,7 @@ out
 
   specs = dtils.flatten_files([options.specs])
 
-  specs.forEach (spec) ->
-    files.push(spec)
-    return
+  files.push spec for spec in specs
 
   files = files.filter (file) -> file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
 
@@ -43,7 +41,7 @@ out
     sass      :0
   }
 
-  files = files.map (file) -> # read files
+  files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
     description = null
     source = []
@@ -52,38 +50,26 @@ out
       fileAudit.js++
       content = dox.parseComments(content)
 
-      if content and content[0] isnt undefined
+      if content and content[0]
         description = content[0].description.full
 
-      content.forEach (item) ->
-        source.push({
-          tags      : item.tags
-          isPrivate : item.isPrivate
-          ignore    : item.ignore
-          code      : item.code
-          summary   : item.description.summary
-          ctx       : item.ctx
-        })
-        return
+      source.push dtils.buildDocObject item, "js" for item in content
 
     else if file.match(/\.(markdown|md|md(own))$/)  # Markdown files
       fileAudit.markdown++
       content =  markdown(content)
-      description = content
+
+      if content
+        description = content
 
     else if file.match(/\.(sass)$/)  # SaSS CSS files
       fileAudit.sass++
-
       content = dox.parseComments(content);
 
-      description = content[0].description.full;
+      if content and content[0]
+        description = content[0].description.full;
 
-      content.forEach (item) ->
-        source.push({
-          code    :item.code
-          summary :item.description.summary
-        })
-        return
+      source.push dtil.buildDocObject item, "sass" for item in content
 
     return {
       filepath: file,
@@ -112,13 +98,13 @@ out
   if options.output # destination option is supplied.
 
     if !path.existsSync(options.output) # the destination dir doesn't exist, create it.
-      fs.mkdirSync(options.output, 0777)
+      fs.mkdirSync(options.output, 0o777)
 
     if options.template is undefined
       options.template = path.resolve(__dirname, defaultTemplatePath)
 
-    dtils.import_js(options);
-    dtils.import_css(options);
+    dtils.import_js(options)
+    dtils.import_css(options)
     template = fs.readFileSync(options.template+'/index.html', "utf8").toString()
 
     ###
@@ -144,9 +130,9 @@ out
       if linked_file.source isnt null
         api = linked_file.source
 
-      out = dtils.template_render(linked_file.content, api, linked_file.filepath, template);
+      out = dtils.template_render(linked_file.content, api, linked_file.filepath, template)
 
-      fs.writeFileSync(path.join(options.output, linked_file.name), out, 'utf8');
+      fs.writeFileSync(path.join(options.output, linked_file.name), out, 'utf8')
 
       return
 
