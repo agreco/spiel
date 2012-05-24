@@ -53,7 +53,7 @@ var path = require('path'),
         if (file.match(/\.(js)$/)) {
             fileAudit.js++;
             content = dox.parseComments(content);
-						description = content[0].description.full;
+            description = content[0].description.full;
             content.forEach(function(item){
                 source.push({
                     tags:item.tags,

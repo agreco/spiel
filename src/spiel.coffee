@@ -32,7 +32,7 @@ out = null
 
   files.push spec for spec in specs
 
-  files = files.filter (file) -> file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
+  files.splice file, 1 for file, i in files when file isnt undefined and not file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
 
   fileAudit = {
     total     :files.length
@@ -69,7 +69,7 @@ out = null
       if content and content[0]
         description = content[0].description.full;
 
-      source.push dtil.buildDocObject item, "sass" for item in content
+      source.push dtils.buildDocObject item, "sass" for item in content
 
     return {
       filepath: file,

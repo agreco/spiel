@@ -29,7 +29,7 @@
   out = null;
 
   (function() {
-    var destination, fileAudit, specs;
+    var destination, file, fileAudit, i, spec, specs, _i, _j, _len, _len1;
     options = dtils.getOpts({});
     files = [];
     if (options.dir) {
@@ -47,12 +47,16 @@
       options.specs = options.dir + '/speclets/';
     }
     specs = dtils.flatten_files([options.specs]);
-    specs.forEach(function(spec) {
+    for (_i = 0, _len = specs.length; _i < _len; _i++) {
+      spec = specs[_i];
       files.push(spec);
-    });
-    files = files.filter(function(file) {
-      return file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/);
-    });
+    }
+    for (i = _j = 0, _len1 = files.length; _j < _len1; i = ++_j) {
+      file = files[i];
+      if (file !== void 0 && !file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)) {
+        files.splice(file, 1);
+      }
+    }
     fileAudit = {
       total: files.length,
       js: 0,
@@ -60,41 +64,36 @@
       sass: 0
     };
     files = files.map(function(file) {
-      var content, description, source;
+      var content, description, item, source, _k, _l, _len2, _len3;
       content = fs.readFileSync(file, "utf8").toString();
       description = null;
       source = [];
       if (file.match(/\.(js)$/)) {
         fileAudit.js++;
         content = dox.parseComments(content);
-        /*if content and content[0] isnt undefined
-        */
-
-        description = content[0].description.full;
-        content.forEach(function(item) {
-          source.push({
-            tags: item.tags,
-            isPrivate: item.isPrivate,
-            ignore: item.ignore,
-            code: item.code,
-            summary: item.description.summary,
-            ctx: item.ctx
-          });
-        });
+        if (content && content[0]) {
+          description = content[0].description.full;
+        }
+        for (_k = 0, _len2 = content.length; _k < _len2; _k++) {
+          item = content[_k];
+          source.push(dtils.buildDocObject(item, "js"));
+        }
       } else if (file.match(/\.(markdown|md|md(own))$/)) {
         fileAudit.markdown++;
         content = markdown(content);
-        description = content;
+        if (content) {
+          description = content;
+        }
       } else if (file.match(/\.(sass)$/)) {
         fileAudit.sass++;
         content = dox.parseComments(content);
-        description = content[0].description.full;
-        content.forEach(function(item) {
-          source.push({
-            code: item.code,
-            summary: item.description.summary
-          });
-        });
+        if (content && content[0]) {
+          description = content[0].description.full;
+        }
+        for (_l = 0, _len3 = content.length; _l < _len3; _l++) {
+          item = content[_l];
+          source.push(dtils.buildDocObject(item, "sass"));
+        }
       }
       return {
         filepath: file,
