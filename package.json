@@ -5,7 +5,7 @@
     "description": "A markdown/jsdoc weapon written as a nodejs CLI",
     "repository": {"type": "git", "url": "https://github.com/agreco/spiel.git"},
     "keywords": ["cli", "markdown", "jsdoc"],
-    "bin": {"spiel": "./bin/$spiel$.js"},
+    "bin": {"spiel": "./bin/spiel.js"},
     "dependencies" : {
         "github-flavored-markdown": ">= 1.x",
         "nopt": ">= 1.x"
