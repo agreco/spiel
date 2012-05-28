@@ -23,7 +23,7 @@ var path = require('path'),
         options.dir !== destination ? files.push(options.dir) : files.push(options.dir + '/src/');
         files = dtils.flatten_files(files);
     }else{
-        throw("Error! Directory to document not specified.")
+        throw("Error! Directory to document not specified.");
     }
 
     if(!options.specs){
@@ -36,7 +36,7 @@ var path = require('path'),
     });
 
     files = files.filter(function (file) { // filter files js, css, sass, html, md
-        return file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
+        return file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/);
     });
 
     var fileAudit = {
@@ -162,12 +162,7 @@ var path = require('path'),
 
             out = dtils.template_render(linked_files[i].content, api, linked_files[i].filepath, template);
 
-                fs.writeFileSync(path.join(options.output, linked_files[i].name), out, 'utf8');
-            try{
-                /*console.log('Wrote '+linked_files[i].name);*/
-            }catch(e){
-                /*console.log('write ERROR');console.dir(e);*/
-            }
+            fs.writeFileSync(path.join(options.output, linked_files[i].name), out, 'utf8');
         }
     }
 
