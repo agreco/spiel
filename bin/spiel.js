@@ -23,7 +23,7 @@ var path = require('path'),
         options.dir !== destination ? files.push(options.dir) : files.push(options.dir + '/src/');
         files = dtils.flatten_files(files);
     }else{
-        throw("Error! Directory to document not specified.")
+        throw("Error! Directory to document not specified.");
     }
 
     if(!options.specs){
@@ -36,7 +36,7 @@ var path = require('path'),
     });
 
     files = files.filter(function (file) { // filter files js, css, sass, html, md
-        return file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/)
+        return file.match(/\.(js|css|htm(l)?|md|md(own)?|markdown|sass)$/);
     });
 
     var fileAudit = {
