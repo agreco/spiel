@@ -72,7 +72,10 @@ var path = require('path'),
         }else if(file.match(/\.(markdown|md|md(own))$/)){
             fileAudit.markdown++;
             content =  markdown(content);
-            description = content;
+            
+            if (content){
+                description = content;
+            }
 
         }else if(file.match(/\.(sass)$/)){ // How to compile documentation for Sass CSS files
             fileAudit.sass++;
@@ -161,13 +164,7 @@ var path = require('path'),
             }
 
             out = dtils.template_render(linked_files[i].content, api, linked_files[i].filepath, template);
-
-                fs.writeFileSync(path.join(options.output, linked_files[i].name), out, 'utf8');
-            try{
-                /*console.log('Wrote '+linked_files[i].name);*/
-            }catch(e){
-                /*console.log('write ERROR');console.dir(e);*/
-            }
+            fs.writeFileSync(path.join(options.output, linked_files[i].name), out, 'utf8');
         }
     }
 
