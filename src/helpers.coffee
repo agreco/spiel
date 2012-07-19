@@ -8,70 +8,61 @@ header_opening = /<h1[^>]*.?>/
 header_closing = /<\/h1[^>]*.?>/
 re_h1s = /<h1>([^<]*).?<\/h1>/g
 
-getOpts = (options) ->
-  opts
+getOptions = (options) ->
+  opts = {
     output: path
     template: path
-    toc: path
-    specs:path
-    dir:path
-    title: String
-    index: Boolean
+    specs: path
+    dir: path
+  }
 
-  shortHands
+  shortHands = {
     o: ["--output"]
     d: ["--dir"]
-    t: ["--title"]
-    ni: ["--no-index"]
+    s: ["--specs"]
+    t: ["--template"]
+  }
 
-  options = nopt(opts, shortHands)
-  if typeof options.index is "undefined" then options.index = true
-  return options
+  return nopt(opts, shortHands, process.argv)
 
-buildDocObject = (item, type) ->
-  obj = undefined
+hashDoc = (item, type) ->
+  hash = undefined
 
-  if type is 'js'
-    obj = {
-      tags      : item.tags
-      isPrivate : item.isPrivate
-      ignore    : item.ignore
-      code      : item.code
-      summary   : item.description.summary
-      ctx       : item.ctx
-    }
+  switch type
+    when 'js'
+      hash = {
+        tags          : item.tags
+        isPrivate     : item.isPrivate
+        ignore        : item.ignore
+        code          : item.code
+        description   : item.description
+        summary       : item.description.summary
+        ctx           : item.ctx
+      }
 
-  if type is 'sass'
-    obj = {
-      code    :item.code
-      summary :item.description.summary
-    }
+  return hash
 
-  return obj
+ignoreVcs = (pathName) ->
+  return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
 
-no_vcs = (infile) -> # skip VCS
-  vcs = /^\.(git|svn|cvs|hg|bzr|idea|nbprojects)$/
-  infile = path.basename(infile)
-  return !infile.match(vcs)
-
-flatten_files = (infiles) -> # flatten dir into files
+getFiles = (pathName) ->
   stat = undefined
-  outfiles = []
-  infiles = infiles.filter(no_vcs)
+  collection = []
+  pathName = Array.prototype.filter(ignoreVcs, pathName)
 
-  infiles.forEach (file) ->
+  pathName.forEach (file) ->
     stat = fs.statSync(file)
 
     if stat.isDirectory()
-      newfiles = fs.readdirSync(file).map (f) -> #make sure readdir puts path back in after
+      #make sure readdir puts path back in after
+      newfiles = fs.readdirSync(file).map (f) ->
         return path.join(file, f);
 
-      flat = flatten_files(newfiles) # recursive
-      outfiles = outfiles.concat(flat) # add the flattened bits back in
+      collection = collection.concat(getFiles(newfiles))
 
-    else outfiles.push(file)
+    else collection.push(file)
 
-  return outfiles
+  return collection
 
 
 template_render = (body, api, title, template) ->
@@ -226,45 +217,18 @@ caseless_sort = (a,b) ->
 
     return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
 
+import_resource = (options) -> #TODO remove need to supply seperate param to determin resource
+  resource_path = options.output.concat('/' + resource)
+  fs.mkdirSync(resource_path, 511) if not path.existsSync(resource_path)
 
-import_js = (options) -> #DIRTY, move to one func!
-  js_path = options.output.concat('/js')
-  if not path.existsSync(js_path)
-    fs.mkdirSync(js_path, 0o777)
+  resources = flatten_files([options.template + "/" + resource + "/"]).filter (file) ->
+    return file.match("/\.("+resource+")$/")
 
-  js_files = [options.template+"/js/"]
-  js_assets = flatten_files(js_files)
-  js_assets = js_assets.filter (file) ->
-    return file.match(/\.(js)$/)
-
-  js_assets.forEach (file) -> #What a muthafunc!
-    filename = file.split('/')
-    newfileName = js_path.concat('/' + filename.pop())
+  resources.forEach (file) ->
+    newfileName = resource_path.concat('/' + file.split('/').pop())
     fs.readFile file, (err, data) ->
-      if err then throw(err)
-      fs.writeFile newfileName, data, 'utf8', (err) ->
-        if err then throw(err)
-      return
-    return
-  return
-
-import_css = (options) ->
-  css_path = options.output.concat('/css');
-  if not path.existsSync(css_path) #FILTH!!
-    fs.mkdirSync(css_path, 0o777)
-
-  css_files = [options.template+"/css/"]
-  css_assets = flatten_files(css_files)
-  css_assets = css_assets.filter (file) ->
-    return file.match(/\.(css)$/)
-
-  css_assets.forEach (file) -> #What a muthafunc!
-    filename = file.split('/')
-    newfileName = css_path.concat('/' + filename.pop())
-    fs.readFile file, (err, data) ->
-      if err then throw(err)
-      fs.writeFile newfileName, data, 'utf8', (err) ->
-        if err then throw(err)
+      throw(err) if err
+      fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
       return
     return
   return
@@ -296,9 +260,10 @@ format_code = (source) ->
   #TODO AG create template, maybe with mustache.js
   return '<div class="api_snippet"><h2 class="api_call">' + method + '</h2><div class="jsdoc">' + (source.summary ? source.summary + '\n' : '') +_tags.join('\n').trim()+ '\n</div>\n<pre class="prettyprint source-code"><code>' + source.code + '\n</code></pre></div>';
 
-exports.getOpts = getOpts;
-exports.buildDocObject = buildDocObject;
-exports.flatten_files = flatten_files;
+exports.getOptions = getOptions;
+exports.hashDoc = hashDoc;
+exports.ignoreVcs = ignoreVcs;
+exports.getFiles = getFiles;
 exports.template_render = template_render;
 exports.munge_filename = munge_filename;
 exports.h1finder = h1finder;
@@ -306,5 +271,4 @@ exports.indexer = indexer;
 exports.toclinker = toclinker;
 exports.format_code = format_code;
 exports.autolink = autolink;
-exports.import_js = import_js;
-exports.import_css = import_css;
+exports.import_resource = import_resource;

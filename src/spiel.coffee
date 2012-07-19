@@ -15,7 +15,7 @@ template = null
 out = null
 
 (() ->
-  options = dtils.getOpts({})
+  options = dtils.getOpts()
   files = []
 
   if options.dir
@@ -25,8 +25,7 @@ out = null
   else
     throw("Error! Directory to document not specified.")
 
-  if not options.specs
-    options.specs = options.dir + '/speclets/'
+  if not options.specs then options.specs = options.dir + '/speclets/'
 
   specs = dtils.flatten_files([options.specs])
 
@@ -81,15 +80,12 @@ out = null
   fileAudit.parsed  = (fileAudit.js + fileAudit.markdown + fileAudit.sass)
   fileAudit.ignored = fileAudit.total - fileAudit.parsed
 
-  files.forEach (file) ->
-    if file.source isnt null
-      file.source.forEach (source, j) ->
-        if j is 0
-          source.summary = null
-        if source.isPrivate isnt undefined and source.isPrivate is false and source.code isnt undefined
-          if source.tags.length
-            source.code = [dtils.format_code(source)].join('\n')
-    return
+  for file, i in files
+    if file.source?
+      for source, j in file.source
+        if j is 0 then source.summary = null
+        if !source.isPrivate? and source.code?
+          if source.tags.length then source.code = [dtils.format_code(source)].join('\n')
 
   h1stuff = dtils.h1finder(files)
   linked_files = dtils.autolink(files, h1stuff.h1s, options.output)
@@ -98,13 +94,12 @@ out = null
   if options.output # destination option is supplied.
 
     if !path.existsSync(options.output) # the destination dir doesn't exist, create it.
-      fs.mkdirSync(options.output, 0o777)
+      fs.mkdirSync(options.output, 511)
 
     if options.template is undefined
       options.template = path.resolve(__dirname, defaultTemplatePath)
 
-    dtils.import_js(options)
-    dtils.import_css(options)
+    dtils.import_resource(options)
     template = fs.readFileSync(options.template+'/index.html', "utf8").toString()
 
     ###
