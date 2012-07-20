@@ -7,7 +7,18 @@ should = chai.should()
 
 describe 'getFiles', ->
 
-  it 'should return an array of files from a given directory', ->
-    dir = path.resolve('    ./')
+  it 'should throw when invoking with no parameters', ->
+    fn = -> helpers.getFiles()
+    expect(helpers.getFiles).to.throw(Error)
+
+  it 'should throw when invoking with a parameter other than an array', ->
+    fn = -> helpers.getFiles('./')
+    expect(fn).to.throw(Error)
+
+  it 'should return and resolve a deep array of files from a given directory', ->
+    dir = ['./']
     files = helpers.getFiles dir
-    console.log(files)
+    expect(files).to.be.defined
+    for file, i in files
+      fs.exists file, (exists) ->
+        expect(exists).to.be.true

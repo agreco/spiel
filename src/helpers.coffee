@@ -46,30 +46,29 @@ ignoreVcs = (pathName) ->
   return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
 
 getFiles = (pathName) ->
+  if not pathName
+    throw new Error('helpers::getFiles -> Please supply a parameter')
+
+  if not pathName instanceof Array
+    throw new Error('helpers::getFiles -> Please supply an array parameter')
+
   stat = undefined
   collection = []
-  pathName = Array.prototype.filter(ignoreVcs, pathName)
+  pathName = pathName.filter(ignoreVcs)
 
   pathName.forEach (file) ->
     stat = fs.statSync(file)
-
     if stat.isDirectory()
-      #make sure readdir puts path back in after
       newfiles = fs.readdirSync(file).map (f) ->
         return path.join(file, f);
-
       collection = collection.concat(getFiles(newfiles))
-
     else collection.push(file)
 
   return collection
 
-
 template_render = (body, api, title, template) ->
   output = template
   _api = ''
-  #title = title || "Docker";
-  #output = output.replace(/\$title/g, title);
 
   output = output.replace /\$title/g, ""
   output = output.replace /\$body/g, body
