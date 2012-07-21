@@ -26,6 +26,12 @@ getOptions = () ->
   return nopt(opts, shortHands, process.argv)
 
 hashDoc = (outline, fileType) ->
+  if not outline
+    throw new Error('helpers.hashDoc -> Missing argument [outline]')
+
+  if not fileType
+    throw new Error('helpers.hashDoc -> Missing argument [fileType]')
+
   hash = undefined
 
   switch fileType
@@ -43,9 +49,15 @@ hashDoc = (outline, fileType) ->
   return hash
 
 ignoreVcs = (pathName) ->
+  if not pathName
+    throw new Error('helpers.ignoreVcs -> Missing argument [pathName]')
+
   return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
 
 getFiles = (pathName) ->
+  if not pathName
+    throw new Error('helpers.getFiles -> Missing argument [pathName]')
+
   stat = undefined
   collection = []
   pathName = pathName.filter(ignoreVcs)
@@ -60,20 +72,22 @@ getFiles = (pathName) ->
 
   return collection
 
-template_render = (body, api, title, template) ->
-  output = template
+renderTemplate = (input, template) ->
+  if not input then throw new Error('helpers.renderTemplate -> Missing argument [input]')
+
+  if not template then throw new Error('helpers.renderTemplate -> Missing argument [template]')
+
   _api = ''
 
-  output = output.replace /\$title/g, ""
-  output = output.replace /\$body/g, body
+  if input.outline
+    for inputObj, i in input.outline
+      if inputObj and inputObj.isPrivate is false and inputObj.code
+        _api += inputObj.code
+    template = template.replace(/\$api/g, '<div id="api">' + _api + "</div>");
 
-  if api isnt null
-    _api += apiObj.code for apiObj, i in api when apiObj isnt undefined and apiObj.isPrivate isnt false and apiObj.code isnt undefined
-    output = output.replace(/\$api/g, '<div id="api"><h1>API</h1>' + _api + "</div>");
-  else 
-    output = output.replace(/\$api/g, "")
+  else template = template.replace(/\$api/g, "")
 
-  return output;
+  return template = template.replace(/\$title/g, input.title);
 
 munge_filename = (file) ->
   path_parts = file.split("/")
@@ -210,7 +224,7 @@ caseless_sort = (a,b) ->
 
     return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
 
-import_resource = (options) -> #TODO remove need to supply seperate param to determin resource
+import_resource = (options, resource) -> #TODO remove need to supply seperate param to determin resource
   resource_path = options.output.concat('/' + resource)
   fs.mkdirSync(resource_path, 511) if not path.existsSync(resource_path)
 
@@ -257,7 +271,7 @@ exports.getOptions = getOptions;
 exports.hashDoc = hashDoc;
 exports.ignoreVcs = ignoreVcs;
 exports.getFiles = getFiles;
-exports.template_render = template_render;
+exports.renderTemplate = renderTemplate;
 exports.munge_filename = munge_filename;
 exports.h1finder = h1finder;
 exports.indexer = indexer;

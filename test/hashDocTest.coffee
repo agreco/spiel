@@ -10,6 +10,14 @@ describe 'hashDoc', ->
 
   jsOutline = []
 
+  it 'should throw an error when first argument is missing', ->
+    fn = -> helpers.hashDoc()
+    expect(fn).to.throw('helpers.hashDoc -> Missing argument [outline]')
+
+  it 'should throw an error when second argument is missing', ->
+    fn = -> helpers.hashDoc({})
+    expect(fn).to.throw('helpers.hashDoc -> Missing argument [fileType]')
+
   it 'should create a hash object from a given JS file', ->
     jsFile = 'test/resources/sample.js'
 

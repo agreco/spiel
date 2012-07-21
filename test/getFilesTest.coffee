@@ -7,6 +7,10 @@ should = chai.should()
 
 describe 'getFiles', ->
 
+  it 'should throw an error when the argument is missing', ->
+    fn = -> helpers.getFiles()
+    expect(fn).to.throw('helpers.getFiles -> Missing argument [pathName]')
+
   it 'should return and resolve a deep array of files from a given directory', ->
     dir = ['./']
     files = helpers.getFiles dir

@@ -22,8 +22,7 @@ out = null
     destination = options.dir + '/src/'
     if options.dir isnt destination then files.push(options.dir) else files.push(destination)
     files = dtils.flatten_files(files)
-  else
-    throw("Error! Directory to document not specified.")
+  else throw("Error! Directory to document not specified.")
 
   if not options.specs then options.specs = options.dir + '/speclets/'
 
