@@ -8,9 +8,6 @@ should = chai.should()
 
 describe 'renderTemplate', ->
 
-  jsOutline = []
-  template = fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString()
-
   it 'should throw an error when arguments are missing', ->
     fn = -> helpers.renderTemplate()
     expect(fn).to.throw('helpers.renderTemplate -> Missing argument [input]')
@@ -19,12 +16,30 @@ describe 'renderTemplate', ->
     fn = -> helpers.renderTemplate(1)
     expect(fn).to.throw('helpers.renderTemplate -> Missing argument [template]')
 
-  it 'should render the default template from a given document', ->
+  it 'should create the default template from a given document', ->
+    jsOutline = []
+    template = fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString()
     jsFile = 'test/resources/sample.js'
-    title = path.basename(jsFile, '.js')
-    jsContents = dox.parseComments fs.readFileSync(path.resolve(jsFile), "utf8").toString()
+    fileName = path.basename(jsFile, '.js')
+    output = 'test/resources/docs/'
+    extension = '.html'
+    encoding = 'utf8'
+    doc = output + fileName + extension
+
+    jsContents = dox.parseComments fs.readFileSync(path.resolve(jsFile), encoding).toString()
 
     for item in jsContents
       jsOutline.push helpers.hashDoc item, "js"
-    renderedTemplate = helpers.renderTemplate({title: title, outline:jsOutline}, template)
-    fs.writeFileSync('template/default/' + path.basename(jsFile, '.js') + '.html', renderedTemplate, 'utf8')
+    renderedTemplate = helpers.renderTemplate({title: fileName, outline:jsOutline}, template)
+
+    if not fs.existsSync(output)
+      fs.mkdirSync(output)
+
+    fs.writeFileSync(doc, renderedTemplate, encoding)
+
+    expect(fs.existsSync(doc)).to.be.true
+
+    expect(fs.readFileSync(doc, encoding)).to.eql(renderedTemplate)
+
+    fs.unlinkSync(doc)
+    fs.rmdirSync(output)

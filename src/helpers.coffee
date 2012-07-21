@@ -99,7 +99,7 @@ munge_filename = (file) ->
     return index isnt ""
 
   #return path_parts.join("_") + ".html";
-  return path_parts[path_parts.length-2] + "_" + path_parts[path_parts.length-1]+ ".html"; #Flithy hack!  TODO AG Refactor
+  return path_parts[path_parts.length-2] + "_" + path_parts[path_parts.length-1] + ".html";
 
 index_to_json = (h1s) ->
   keywords = Object.keys(h1s).map (h1) -> return {term: h1, url: h1s[h1]}
