@@ -8,7 +8,7 @@ header_opening = /<h1[^>]*.?>/
 header_closing = /<\/h1[^>]*.?>/
 re_h1s = /<h1>([^<]*).?<\/h1>/g
 
-getOptions = (options) ->
+getOptions = () ->
   opts = {
     output: path
     template: path
@@ -25,19 +25,19 @@ getOptions = (options) ->
 
   return nopt(opts, shortHands, process.argv)
 
-hashDoc = (item, type) ->
+hashDoc = (outline, fileType) ->
   hash = undefined
 
-  switch type
+  switch fileType
     when 'js'
       hash = {
-        tags          : item.tags
-        isPrivate     : item.isPrivate
-        ignore        : item.ignore
-        code          : item.code
-        description   : item.description
-        summary       : item.description.summary
-        ctx           : item.ctx
+        tags          : outline.tags
+        isPrivate     : outline.isPrivate
+        ignore        : outline.ignore
+        code          : outline.code
+        description   : outline.description
+        summary       : outline.description.summary
+        ctx           : outline.ctx
       }
 
   return hash
@@ -46,12 +46,6 @@ ignoreVcs = (pathName) ->
   return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
 
 getFiles = (pathName) ->
-  if not pathName
-    throw new Error('helpers::getFiles -> Please supply a parameter')
-
-  if not pathName instanceof Array
-    throw new Error('helpers::getFiles -> Please supply an array parameter')
-
   stat = undefined
   collection = []
   pathName = pathName.filter(ignoreVcs)

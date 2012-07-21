@@ -6,7 +6,6 @@ chai = require 'chai'
 expect = chai.expect
 should = chai.should()
 
-
 describe 'hashDoc', ->
 
   jsOutline = []
