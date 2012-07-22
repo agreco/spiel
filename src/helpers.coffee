@@ -89,17 +89,17 @@ renderTemplate = (input, template) ->
 
   return template = template.replace(/\$title/g, input.title);
 
-munge_filename = (file) ->
-  path_parts = file.split("/")
+catPath = (file, delimiter) ->
+  pathArr = file.split("/")
 
-  path_parts = path_parts.map (index) ->
+  pathArr = pathArr.map (index) ->
     return index.replace /^\.+/g, ""
 
-  path_parts = path_parts.filter (index)->
+  pathArr = pathArr.filter (index)->
     return index isnt ""
 
-  #return path_parts.join("_") + ".html";
-  return path_parts[path_parts.length-2] + "_" + path_parts[path_parts.length-1] + ".html";
+  #return pathArr.join("_") + ".html";
+  return pathArr[pathArr.length-2] + delimiter ? '_' + pathArr[pathArr.length-1] + ".html";
 
 index_to_json = (h1s) ->
   keywords = Object.keys(h1s).map (h1) -> return {term: h1, url: h1s[h1]}
