@@ -99,6 +99,9 @@ catPath = (file, delimiter) ->
     throw new Error('helpers.catPath -> Missing argument [delimiter]')
   
   pathArr = file.split "/"
+
+  pathArr = pathArr.map (index) ->
+    return index.replace /^\.+/g, ""
   
   pathArr = pathArr.filter (index)->
     return index isnt ""
