@@ -26,10 +26,10 @@ getOptions = () ->
   return nopt(opts, shortHands, process.argv)
 
 hashDoc = (outline, fileType) ->
-  if not outline
+  unless outline
     throw new Error('helpers.hashDoc -> Missing argument [outline]')
 
-  if not fileType
+  unless fileType
     throw new Error('helpers.hashDoc -> Missing argument [fileType]')
 
   hash = undefined
@@ -49,13 +49,13 @@ hashDoc = (outline, fileType) ->
   return hash
 
 ignoreVcs = (pathName) ->
-  if not pathName
+  unless pathName
     throw new Error('helpers.ignoreVcs -> Missing argument [pathName]')
 
   return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
 
 getFiles = (pathName) ->
-  if not pathName
+  unless pathName
     throw new Error('helpers.getFiles -> Missing argument [pathName]')
 
   stat = undefined
@@ -73,9 +73,11 @@ getFiles = (pathName) ->
   return collection
 
 renderTemplate = (input, template) ->
-  if not input then throw new Error('helpers.renderTemplate -> Missing argument [input]')
+  unless input
+    throw new Error('helpers.renderTemplate -> Missing argument [input]')
 
-  if not template then throw new Error('helpers.renderTemplate -> Missing argument [template]')
+  unless template
+    throw new Error('helpers.renderTemplate -> Missing argument [template]')
 
   _api = ''
 
@@ -90,15 +92,17 @@ renderTemplate = (input, template) ->
   return template = template.replace(/\$title/g, input.title);
 
 catPath = (file, delimiter) ->
-  pathArr = file.split("/")
+  unless file 
+    throw new Error('helpers.catPath -> Missing argument [file]')
 
-  pathArr = pathArr.map (index) ->
-    return index.replace /^\.+/g, ""
-
+  unless delimiter
+    throw new Error('helpers.catPath -> Missing argument [delimiter]')
+  
+  pathArr = file.split "/"
+  
   pathArr = pathArr.filter (index)->
     return index isnt ""
-
-  #return pathArr.join("_") + ".html";
+  
   return pathArr[pathArr.length-2] + delimiter ? '_' + pathArr[pathArr.length-1] + ".html";
 
 index_to_json = (h1s) ->
@@ -272,7 +276,7 @@ exports.hashDoc = hashDoc;
 exports.ignoreVcs = ignoreVcs;
 exports.getFiles = getFiles;
 exports.renderTemplate = renderTemplate;
-exports.munge_filename = munge_filename;
+exports.catPath = catPath;
 exports.h1finder = h1finder;
 exports.indexer = indexer;
 exports.toclinker = toclinker;
