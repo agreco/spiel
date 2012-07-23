@@ -12,3 +12,9 @@ describe 'catPath', ->
   
   it 'should throw if the second argument is missing', ->
     expect(-> helpers.catPath([])).to.throw('helpers.catPath -> Missing argument [delimiter]')
+
+  it 'should join a file path with a delimiter argument', ->
+    inputPath = 'test/resources/Sample.js'
+    outputPath = 'test_resources_Sample.js.html'
+    file = helpers.catPath(inputPath, '_')
+    expect(file).to.eql(outputPath)

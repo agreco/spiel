@@ -98,15 +98,17 @@ catPath = (file, delimiter) ->
   unless delimiter
     throw new Error('helpers.catPath -> Missing argument [delimiter]')
   
+  delimiter = delimiter or '_'
+
   pathArr = file.split "/"
 
   pathArr = pathArr.map (index) ->
     return index.replace /^\.+/g, ""
   
-  pathArr = pathArr.filter (index)->
+  pathArr = pathArr.filter (index) ->
     return index isnt ""
-  
-  return pathArr[pathArr.length-2] + delimiter ? '_' + pathArr[pathArr.length-1] + ".html";
+
+  return file = pathArr.join(delimiter) + ".html"
 
 index_to_json = (h1s) ->
   keywords = Object.keys(h1s).map (h1) -> return {term: h1, url: h1s[h1]}
