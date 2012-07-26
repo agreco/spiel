@@ -1,6 +1,8 @@
-path = require('path')
-fs = require('fs')
-nopt = require('nopt')
+path = require 'path'
+fs = require 'fs'
+nopt = require 'nopt'
+markdown = require('github-flavored-markdown').parse
+dox =  require '../lib/dox'
 
 external_regex = /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g
 external_replace = '$1 class="external" $2'
@@ -110,30 +112,65 @@ catPath = (file, delimiter) ->
 
   return file = pathArr.join(delimiter) + ".html"
 
-index_to_json = (h1s) ->
-  keywords = Object.keys(h1s).map (h1) -> return {term: h1, url: h1s[h1]}
-  return JSON.stringify(keywords);
+buildFileObjects = (files) ->
+  unless files
+    throw new Error('helpers.buildFileObjects -> Missing argument [files]')
 
-h1finder = (processed) ->
-  h1s = {}
-  files_to_h1s = {}
-  h1find = /(<h1>([^<]*).?<\/h1>)/g
+  return files = files.map (file) -> # Read files
+    content = fs.readFileSync(file, "utf8").toString()
+    description = null
+    source = []
 
-  processed.forEach (file_info) ->
-    accum_h1s = []
+    switch file
+      when file.match(/\.(js)$/) # JS files
+        content = dox.parseComments(content)
+        if content and content[0]
+          description = content[0].description.full
+        source.push hashDoc item, "js" for item in content
+
+      when file.match(/\.(markdown|md|md(own))$/)  # Markdown files
+        content =  markdown(content)
+        if content then description = content
+
+      when file.match(/\.(sass)$/)  # SaSS CSS files
+        content = dox.parseComments(content);
+        if content and content[0]
+          description = content[0].description.full;
+        source.push hashDoc item, "sass" for item in content
+
+    return {
+      filepath: file,
+      name: catPath(file, '_'),
+      content: description,
+      source: source ? null
+    }
+
+parseHeaders = (files, header) ->
+  unless files
+    throw new Error('helpers.parseHeaders -> Missing argument [files]')
+  
+  unless header
+    throw new Error('helpers.parseHeaders -> Missing argument [header]')
+
+  headers = {}
+  headerLinks = {}
+  headerRegex = /(<header>([^<]*).?<\/header>)/g
+  
+  files.forEach (fileInfo) ->
+    accumHeaders = []
     h1 = ""
 
-    while h1 = h1find.exec(file_info.content) isnt null
-      accum_h1s.push h1[1]
+    while h1 = headerRegex.exec(fileInfo.content) isnt null
+      accumHeaders.push h1[1]
 
-    accum_h1s.forEach (h1) ->
-      h1s[h1] = file_info.name
+    accumHeaders.forEach (h1) ->
+      headers[h1] = fileInfo.name
 
-    files_to_h1s[file_info.name] = accum_h1s
+    headerLinks[fileInfo.name] = accumHeaders
 
   return {
-    h1s : h1s
-    files_to_h1s : files_to_h1s
+    headers : headers
+    headerLinks : headerLinks
   }
 
 indexer = (h1s, outputdir) ->
@@ -173,11 +210,11 @@ indexer = (h1s, outputdir) ->
 toclinker = (toc, files, toc_regex) ->
   tocline = toc_regex || /(\S*).\s*{(.+)}/
   tocline_res = undefined
-  h1stuff = h1finder(files)
+  h1stuff = parseHeaders(files)
   toclinked = []
 
   toc.forEach (line) ->
-    if (tocline_res = tocline.exec(line)) isnt null
+    if (headerses = tocline.exec(line)) isnt null
       line = toc_expander(h1stuff, tocline_res[1], tocline_res[2]);
 
   toclinked.push(line)
@@ -270,21 +307,22 @@ format_code = (source) ->
       (_tag['title'] != undefined ? _tag['title'] + ' ' : '') +
       (_tag['url'] != undefined ? _tag['url'] + ' ' : '')+
       (_tag['local'] != undefined ? _tag['local'] + ' ' : '')+ '\n';
-      #(_tag['visibility'] != undefined ? _tag['visibility'] + ' ' : '') + '\n';
+      #(_tag['headersisibility'] != undefined ? _tag['visibility'] + ' ' : '') + '\n';
     _tags.push(tag);
 
   #TODO AG create template, maybe with mustache.js
   return '<div class="api_snippet"><h2 class="api_call">' + method + '</h2><div class="jsdoc">' + (source.summary ? source.summary + '\n' : '') +_tags.join('\n').trim()+ '\n</div>\n<pre class="prettyprint source-code"><code>' + source.code + '\n</code></pre></div>';
 
-exports.getOptions = getOptions;
-exports.hashDoc = hashDoc;
-exports.ignoreVcs = ignoreVcs;
-exports.getFiles = getFiles;
-exports.renderTemplate = renderTemplate;
-exports.catPath = catPath;
-exports.h1finder = h1finder;
-exports.indexer = indexer;
-exports.toclinker = toclinker;
-exports.format_code = format_code;
-exports.autolink = autolink;
-exports.import_resource = import_resource;
+exports.getOptions = getOptions
+exports.hashDoc = hashDoc
+exports.ignoreVcs = ignoreVcs
+exports.getFiles = getFiles
+exports.renderTemplate = renderTemplate
+exports.catPath = catPath
+exports.buildFileObjects = buildFileObjects
+exports.parseHeaders = parseHeaders
+exports.indexer = indexer
+exports.toclinker = toclinker
+exports.format_code = format_code
+exports.autolink = autolink
+exports.import_resource = import_resource

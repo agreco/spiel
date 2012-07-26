@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-path = require('path')
-fs = require('fs')
+path = require 'path'
+fs = require 'fs'
 markdown = require('github-flavored-markdown').parse
-dtils = require('../lib/docco')
-dox = require('../lib/dox')
+dtils = require '../lib/docco'
+dox = require '../lib/dox'
 defaultTemplatePath = '../template/default'
 options = null
 files = null
