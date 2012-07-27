@@ -10,7 +10,7 @@ header_opening = /<h1[^>]*.?>/
 header_closing = /<\/h1[^>]*.?>/
 re_h1s = /<h1>([^<]*).?<\/h1>/g
 
-getOptions = () ->
+getOptions = ->
   opts = {
     output: path
     template: path
@@ -54,7 +54,7 @@ ignoreVcs = (pathName) ->
   unless pathName
     throw new Error('helpers.ignoreVcs -> Missing argument [pathName]')
 
-  return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr)$/)
+  return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr|idea|nbprojects)$/)
 
 getFiles = (pathName) ->
   unless pathName
@@ -112,37 +112,48 @@ catPath = (file, delimiter) ->
 
   return file = pathArr.join(delimiter) + ".html"
 
+cleanseFiles = (files) ->
+  unless files
+    throw new Error('helpers.cleanseFiles -> Missing argument [files]')
+  
+  fileArray = []
+  
+  for file, i in files
+    if file and file.match(/\.(js|css|htm(l)|markdown|md|md(own))$/)
+      fileArray.push(file)
+
+  return fileArray
+
 buildFileObjects = (files) ->
   unless files
     throw new Error('helpers.buildFileObjects -> Missing argument [files]')
 
   return files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
+
     description = null
     source = []
+    obj = {}
 
-    switch file
-      when file.match(/\.(js)$/) # JS files
-        content = dox.parseComments(content)
-        if content and content[0]
-          description = content[0].description.full
-        source.push hashDoc item, "js" for item in content
+    if /\.(js)$/.test(file) # JS files
+      content = dox.parseComments(content)
+      description = content[0].description.full if content and content[0]
+      source.push hashDoc item, "js" for item in content
+    
+    else if file.match(/\.(markdown|md|md(own))$/) # Markdown files
+      content = markdown(content)
+      description = content if content 
 
-      when file.match(/\.(markdown|md|md(own))$/)  # Markdown files
-        content =  markdown(content)
-        if content then description = content
-
-      when file.match(/\.(sass)$/)  # SaSS CSS files
-        content = dox.parseComments(content);
-        if content and content[0]
-          description = content[0].description.full;
-        source.push hashDoc item, "sass" for item in content
+    else if file.match(/\.(sass)$/) # SaSS CSS files
+      content = dox.parseComments(content);
+      description = content[0].description.full if content and content[0]
+      source.push hashDoc item, "sass" for item in content
 
     return {
-      filepath: file,
-      name: catPath(file, '_'),
-      content: description,
-      source: source ? null
+      path: file
+      name: catPath(file, '.')
+      desc: description
+      src: if source.length < 1 then null else source
     }
 
 parseHeaders = (files, header) ->
@@ -150,23 +161,22 @@ parseHeaders = (files, header) ->
     throw new Error('helpers.parseHeaders -> Missing argument [files]')
   
   unless header
-    throw new Error('helpers.parseHeaders -> Missing argument [header]')
+    header = 'h1'
 
   headers = {}
   headerLinks = {}
-  headerRegex = /(<header>([^<]*).?<\/header>)/g
+  headerRegex = new RegExp('(<'+ header + '>([^<]*).?<\\/' + header + '>)', 'g')
   
-  files.forEach (fileInfo) ->
+  files.forEach (fileObj) ->
     accumHeaders = []
     h1 = ""
 
-    while h1 = headerRegex.exec(fileInfo.content) isnt null
+    while (h1 = headerRegex.exec(fileObj.desc)) isnt null
       accumHeaders.push h1[1]
 
-    accumHeaders.forEach (h1) ->
-      headers[h1] = fileInfo.name
+    accumHeaders.forEach (h1) -> headers[h1] = fileObj.name
 
-    headerLinks[fileInfo.name] = accumHeaders
+    headerLinks[fileObj.name] = accumHeaders
 
   return {
     headers : headers
@@ -319,6 +329,7 @@ exports.ignoreVcs = ignoreVcs
 exports.getFiles = getFiles
 exports.renderTemplate = renderTemplate
 exports.catPath = catPath
+exports.cleanseFiles = cleanseFiles
 exports.buildFileObjects = buildFileObjects
 exports.parseHeaders = parseHeaders
 exports.indexer = indexer

@@ -23,41 +23,42 @@ describe 'hashDoc', ->
 
     jsContents = fs.readFileSync(path.resolve(jsFile), "utf8").toString()
     jsContents = dox.parseComments(jsContents)
+    #TODO must test for html/css/sass/markdown
     jsOutline.push helpers.hashDoc item, "js" for item in jsContents
     expect(jsOutline).to.not.be.empty
 
-  it 'should return a tag property', ->
-    for outline, i in jsOutline
-      expect(outline.tags).to.exist
+  it 'jsOutline should contain a tag property', ->
+    for outline in jsOutline
+      expect(outline.tags).to.be.defined
 
-  it 'should return a isPrivate property', ->
-    for outline, i in jsOutline
-      expect(outline.isPrivate).to.exist
+  it 'jsOutline should contain a isPrivate property', ->
+    for outline in jsOutline
+      expect(outline.isPrivate).to.be.defined
 
-  it 'should return a ignore property', ->
-    for outline, i in jsOutline
-      expect(outline.ignore).to.exist
+  it 'jsOutline should contain a ignore property', ->
+    for outline in jsOutline
+      expect(outline.ignore).to.be.defined
 
-  it 'should return a code property', ->
-    for outline, i in jsOutline
-      expect(outline.code).to.exist
+  it 'jsOutline should contain a code property', ->
+    for outline in jsOutline
+      expect(outline.code).to.be.defined
 
-  it 'should return a description property', ->
-    for outline, i in jsOutline
-      expect(outline.description).to.exist
+  it 'jsOutline should contain a description property', ->
+    for outline in jsOutline
+      expect(outline.description).to.be.defined
 
-  it 'should return a description.full property', ->
-    for outline, i in jsOutline
-      expect(outline.description.full).to.exist
+  it 'jsOutline should contain a description.full property', ->
+    for outline in jsOutline
+      expect(outline.description.full).to.be.defined
 
-  it 'should return a description.summary property', ->
-    for outline, i in jsOutline
-      expect(outline.description.summary).to.exist
+  it 'jsOutline should contain a description.summary property', ->
+    for outline in jsOutline
+      expect(outline.description.summary).to.be.defined
 
-  it 'should return a description.body property', ->
-    for outline, i in jsOutline
-      expect(outline.description.body).to.exist
+  it 'jsOutline should contain a description.body property', ->
+    for outline in jsOutline
+      expect(outline.description.body).to.be.defined
 
-  it 'should return a ctx property', ->
-    for outline, i in jsOutline
-      expect(outline.ctx).to.exist
+  it 'jsOutline should contain a ctx property', ->
+    for outline in jsOutline
+      expect(outline.ctx).to.be.defined
