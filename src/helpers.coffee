@@ -145,6 +145,7 @@ buildFileObjects = (files) ->
 
     if /\.(js)$/.test(file) # JS files
       content = dox.parseComments(content)
+      #TODO build extened file object from the content array
       description = content[0].description.full if content and content[0]
       source.push hashDoc item, "js" for item in content
     
@@ -231,30 +232,37 @@ indexLinker = (headings, outputdir) ->
 
   return '<h1>Index</h1>\n<div id="index">\n' + keywordsMarked.join("\n") + '\n</div>'
 
-autolink = (files, h1s, output) ->
-  i = undefined
-  l = undefined
-  input = undefined
+fileLinker = (files, headers, output) ->
+  unless files
+    throw new Error('helpers.fileLinker -> Missing argument [files]')
 
-  keywords = Object.keys(h1s).sort().reverse().map (kw) -> return kw.replace(/<h1>([^<]*).?<\/h1>/g, '$1')
+  unless headers
+    throw new Error('helpers.fileLinker -> Missing argument [headers]')
+
+  keywords = Object.keys(headers).sort().reverse().map (kw) ->
+    return kw.replace(regex.heading, '$1')
 
   if not keywords.length then return files
 
-  re = new RegExp(header_opening.source + '(' + keywords.join("|") + ')' + header_closing.source, 'g')
+  re = new RegExp(regex.openHeading.source + '(' + keywords.join("|") + ')' + regex.closeHeading.source, 'g')
 
-  for i in files
-    input = String(files[i].content)
-    input = input.replace(external_regex, external_replace);
+  for file in files
+    input = String(file.desc)
+    input = input.replace(regex.externalLink, regex.externalClassName);
 
     if output
-      input = input.replace re, (_, m1) -> return '<h1><a href="'+h1s[m1]+'#'+m1+'">'+m1+'<\/a></h1>'
+      input = input.replace re, (header, text) ->
+        return '<h1><a href="'+headers[header]+'#'+text+'">'+text+'<\/a></h1>'
+
       input = input.replace(/<h1><a href="[^#>]*#/g,'<h1><a name="')
 
     else
-      input = input.replace re, (_, m1) -> return '<h1><a href="' + '#' + m1 + '">' + m1 + '<\/a></h1>'
+      input = input.replace re, (header, match) ->
+        return '<h1><a href="' + '#' + match + '">' + match + '<\/a></h1>'
+
       input = input.replace(/<h1><a href="#/g,'<h1><a name="')
 
-    files[i].content = input
+    file.desc = input
 
   return files
 
@@ -342,7 +350,7 @@ exports.cleanseFiles = cleanseFiles
 exports.buildFileObjects = buildFileObjects
 exports.parseHeaders = parseHeaders
 exports.indexLinker = indexLinker
+exports.fileLinker = fileLinker
 exports.toclinker = toclinker
 exports.format_code = format_code
-exports.autolink = autolink
 exports.import_resource = import_resource
