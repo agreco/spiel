@@ -4,6 +4,14 @@ nopt = require 'nopt'
 markdown = require('github-flavored-markdown').parse
 dox =  require '../lib/dox'
 
+regex = {
+  externalLink: /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g
+  externalClassName: '$1 class="external" $2'
+  heading: /<h1>([^<]*).?<\/h1>/g
+  openHeading: /<h1[^>]*.?>/
+  closeHeading: /<\/h1[^>]*.?>/
+}
+
 external_regex = /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g
 external_replace = '$1 class="external" $2'
 header_opening = /<h1[^>]*.?>/
@@ -168,54 +176,104 @@ parseHeaders = (files, header) ->
   headerRegex = new RegExp('(<'+ header + '>([^<]*).?<\\/' + header + '>)', 'g')
   
   files.forEach (fileObj) ->
-    accumHeaders = []
-    h1 = ""
+    accumlatedHeaders = []
+    headings = ""
 
-    while (h1 = headerRegex.exec(fileObj.desc)) isnt null
-      accumHeaders.push h1[1]
+    accumlatedHeaders.push headings[1] while (headings = headerRegex.exec(fileObj.desc)) isnt null
 
-    accumHeaders.forEach (h1) -> headers[h1] = fileObj.name
+    accumlatedHeaders.forEach (h) -> headers[h] = fileObj.name
 
-    headerLinks[fileObj.name] = accumHeaders
+    headerLinks[fileObj.name] = accumlatedHeaders
 
   return {
     headers : headers
     headerLinks : headerLinks
   }
 
-indexer = (h1s, outputdir) ->
-  clone = {}
-  key = undefined
-  keywords = undefined
+lowerCaseSort = (a,b) ->
+    if typeof a isnt "string" or typeof b isnt "string"
+      return 0
+    return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
 
-  for key in h1s
-    k = key.replace(re_h1s, '$1')
-    clone[k] = h1s[key]
+indexLinker = (headings, outputdir) ->
+  unless headings
+    throw new Error('helpers.indexLinker -> Missing argument [headings]')
 
-    keywords = Object.keys(clone).sort(caseless_sort)
-    keyword_letters = {}
-    formatter = (keyword) ->
-      if outputdir
-        return '<li><a href="' + clone[keyword] + '#' + keyword + '">' + keyword + '</a></li>'
-      else
-        return '<li><a href="#' + keyword + '">' + keyword + '</a></li>'
+  clonedHeaders = {}
+  keywords = {}
+  keywordLetters = {}
+  
+  for heading of headings
+    h = heading.replace(regex.heading, '$1')
+    clonedHeaders[h] = headings[heading]
 
-    keywords.forEach (keyword) ->
-      letter = keyword.toLocaleUpperCase().substring(0,1)
+  keywords = Object.keys(clonedHeaders).sort(lowerCaseSort)
+  
+  formatter = (keyword) ->
+    if outputdir
+      return '<li><a href="' + clonedHeaders[keyword] + '#' + keyword + '">' + keyword + '</a></li>'
+    else
+      return '<li><a href="#' + keyword + '">' + keyword + '</a></li>'
 
-      if typeof keyword_letters[letter] isnt "undefined"
-        keyword_letters[letter] = [formatter(keyword)]
-      else
-        (keyword_letters[letter]).push(formatter(keyword))
+  keywords.forEach (keyword) ->
+    letter = keyword.toLocaleUpperCase().substring(0,1)
+    if typeof keywordLetters[letter] is "undefined"
+      keywordLetters[letter] = [formatter(keyword)]
+    else
+      (keywordLetters[letter]).push(formatter(keyword))
 
-    keywords_marked = Object.keys(keyword_letters)
+  keywordsMarked = Object.keys(keywordLetters)
 
-    keywords_marked = keywords_marked.map (letter) ->
-      list_out = '<h2>' + letter + '</h2><ul>' + '\n'
-      list_out += (keyword_letters[letter]).join("\n") + '</ul>'
-      return list_out
+  keywordsMarked = keywordsMarked.map (letter) ->
+    listOut =  '<h2>' + letter + '</h2>' + '\n'
+    listOut += '<ul>\n' + (keywordLetters[letter]).join("\n") + '\n</ul>'
+    return listOut
 
-  return '<h1>Index</h1>\n<span id="index">' + keywords_marked.join("\n") + '</span>'
+  return '<h1>Index</h1>\n<div id="index">\n' + keywordsMarked.join("\n") + '\n</div>'
+
+autolink = (files, h1s, output) ->
+  i = undefined
+  l = undefined
+  input = undefined
+
+  keywords = Object.keys(h1s).sort().reverse().map (kw) -> return kw.replace(/<h1>([^<]*).?<\/h1>/g, '$1')
+
+  if not keywords.length then return files
+
+  re = new RegExp(header_opening.source + '(' + keywords.join("|") + ')' + header_closing.source, 'g')
+
+  for i in files
+    input = String(files[i].content)
+    input = input.replace(external_regex, external_replace);
+
+    if output
+      input = input.replace re, (_, m1) -> return '<h1><a href="'+h1s[m1]+'#'+m1+'">'+m1+'<\/a></h1>'
+      input = input.replace(/<h1><a href="[^#>]*#/g,'<h1><a name="')
+
+    else
+      input = input.replace re, (_, m1) -> return '<h1><a href="' + '#' + m1 + '">' + m1 + '<\/a></h1>'
+      input = input.replace(/<h1><a href="#/g,'<h1><a name="')
+
+    files[i].content = input
+
+  return files
+
+import_resource = (options, resource) -> #TODO remove need to supply seperate param to determin resource
+  resource_path = options.output.concat('/' + resource)
+  fs.mkdirSync(resource_path, 511) if not path.existsSync(resource_path)
+
+  resources = flatten_files([options.template + "/" + resource + "/"]).filter (file) ->
+    return file.match("/\.("+resource+")$/")
+
+  resources.forEach (file) ->
+    newfileName = resource_path.concat('/' + file.split('/').pop())
+    fs.readFile file, (err, data) ->
+      throw(err) if err
+      fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
+      return
+    return
+  return
+
 
 toclinker = (toc, files, toc_regex) ->
   tocline = toc_regex || /(\S*).\s*{(.+)}/
@@ -246,55 +304,6 @@ toc_expander = (h1bag, indent, pathpart) ->
     return indent + '* ' + matching_h1;
 
   return matching_h1s.join("\n").replace(/_/g,"\\_");
-
-autolink = (files, h1s, output) ->
-  i = undefined
-  l = undefined
-  input = undefined
-
-  keywords = Object.keys(h1s).sort().reverse().map (kw) -> return kw.replace(/<h1>([^<]*).?<\/h1>/g, '$1')
-
-  if not keywords.length then return files
-
-  re = new RegExp(header_opening.source + '(' + keywords.join("|") + ')' + header_closing.source, 'g')
-
-  for i in files
-    input = String(files[i].content)
-    input = input.replace(external_regex, external_replace);
-
-    if output
-      input = input.replace re, (_, m1) -> return '<h1><a href="'+h1s[m1]+'#'+m1+'">'+m1+'<\/a></h1>'
-      input = input.replace(/<h1><a href="[^#>]*#/g,'<h1><a name="')
-
-    else
-      input = input.replace re, (_, m1) -> return '<h1><a href="' + '#' + m1 + '">' + m1 + '<\/a></h1>'
-      input = input.replace(/<h1><a href="#/g,'<h1><a name="')
-
-    files[i].content = input
-
-  return files
-
-caseless_sort = (a,b) ->
-    if typeof a inst "string" or typeof b isnt "string"
-      return 0
-
-    return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-
-import_resource = (options, resource) -> #TODO remove need to supply seperate param to determin resource
-  resource_path = options.output.concat('/' + resource)
-  fs.mkdirSync(resource_path, 511) if not path.existsSync(resource_path)
-
-  resources = flatten_files([options.template + "/" + resource + "/"]).filter (file) ->
-    return file.match("/\.("+resource+")$/")
-
-  resources.forEach (file) ->
-    newfileName = resource_path.concat('/' + file.split('/').pop())
-    fs.readFile file, (err, data) ->
-      throw(err) if err
-      fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
-      return
-    return
-  return
 
 format_code = (source) ->
   i = undefined
@@ -332,7 +341,7 @@ exports.catPath = catPath
 exports.cleanseFiles = cleanseFiles
 exports.buildFileObjects = buildFileObjects
 exports.parseHeaders = parseHeaders
-exports.indexer = indexer
+exports.indexLinker = indexLinker
 exports.toclinker = toclinker
 exports.format_code = format_code
 exports.autolink = autolink
