@@ -15,7 +15,7 @@ describe 'buildFileObjects', ->
     expect(-> helpers.buildFileObjects()).to.throw('helpers.buildFileObjects -> Missing argument [files]')
   
   it 'should return a files array containing file objects', ->
-    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles ['./']
+    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './'
 
     assert.isArray(files)
     expect(files).to.not.be.empty

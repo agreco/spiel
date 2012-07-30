@@ -12,12 +12,6 @@ regex = {
   closeHeading: /<\/h1[^>]*.?>/
 }
 
-external_regex = /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g
-external_replace = '$1 class="external" $2'
-header_opening = /<h1[^>]*.?>/
-header_closing = /<\/h1[^>]*.?>/
-re_h1s = /<h1>([^<]*).?<\/h1>/g
-
 getOptions = ->
   opts = {
     output: path
@@ -70,6 +64,10 @@ getFiles = (pathName) ->
 
   stat = undefined
   collection = []
+
+  if pathName not instanceof Array
+    pathName = [pathName] 
+
   pathName = pathName.filter(ignoreVcs)
 
   pathName.forEach (file) ->
@@ -266,15 +264,18 @@ fileLinker = (files, headers, output) ->
 
   return files
 
-import_resource = (options, resource) -> #TODO remove need to supply seperate param to determin resource
-  resource_path = options.output.concat('/' + resource)
-  fs.mkdirSync(resource_path, 511) if not path.existsSync(resource_path)
+importTemplateResources = (options) ->
+  unless options
+    throw new Error('helpers.importTemplateResources -> Missing argument [options]')
 
-  resources = flatten_files([options.template + "/" + resource + "/"]).filter (file) ->
+  resourcePath = options.output.concat('/' + resource)
+  fs.mkdirSync(resourcePath, 511) if not fs.existsSync(resourcePath)
+
+  resources = getFiles([options.template + "/" + resource + "/"]).filter (file) ->
     return file.match("/\.("+resource+")$/")
 
   resources.forEach (file) ->
-    newfileName = resource_path.concat('/' + file.split('/').pop())
+    newfileName = resourcePath.concat('/' + file.split('/').pop())
     fs.readFile file, (err, data) ->
       throw(err) if err
       fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
@@ -282,6 +283,32 @@ import_resource = (options, resource) -> #TODO remove need to supply seperate pa
     return
   return
 
+formatCode = (source) ->
+  i = undefined
+  len = undefined
+  _tag = undefined
+  tag = ''
+  tags = surce.tags
+  _tags = []
+  method = ''
+  code = source.code
+
+  for i in tags #TODO AG not happy about this. Need to refactor.
+    _tag = tags[i];
+    if _tag['method'] then method = _tag['method']
+
+    tag = ((_tag['type'] != undefined && _tag['type'] != 'method') ? '<strong>@' + _tag['type'] + '</strong> ' : '') +
+      (_tag['types'] != undefined && _tag['types'][0] != undefined ? _tag['types'][0] + ' ' : '')+
+      (_tag['name'] != undefined ? _tag['name'] + ' ' : '') +
+      (_tag['description'] != undefined ? _tag['description'] + ' ' : '') +
+      (_tag['title'] != undefined ? _tag['title'] + ' ' : '') +
+      (_tag['url'] != undefined ? _tag['url'] + ' ' : '')+
+      (_tag['local'] != undefined ? _tag['local'] + ' ' : '')+ '\n';
+      #(_tag['headersisibility'] != undefined ? _tag['visibility'] + ' ' : '') + '\n';
+    _tags.push(tag);
+
+  #TODO AG create template, maybe with mustache.js
+  return '<div class="api_snippet"><h2 class="api_call">' + method + '</h2><div class="jsdoc">' + (source.summary ? source.summary + '\n' : '') +_tags.join('\n').trim()+ '\n</div>\n<pre class="prettyprint source-code"><code>' + source.code + '\n</code></pre></div>';
 
 toclinker = (toc, files, toc_regex) ->
   tocline = toc_regex || /(\S*).\s*{(.+)}/
@@ -313,33 +340,6 @@ toc_expander = (h1bag, indent, pathpart) ->
 
   return matching_h1s.join("\n").replace(/_/g,"\\_");
 
-format_code = (source) ->
-  i = undefined
-  len = undefined
-  _tag = undefined
-  tag = ''
-  tags = surce.tags
-  _tags = []
-  method = ''
-  code = source.code
-
-  for i in tags #TODO AG not happy about this. Need to refactor.
-    _tag = tags[i];
-    if _tag['method'] then method = _tag['method']
-
-    tag = ((_tag['type'] != undefined && _tag['type'] != 'method') ? '<strong>@' + _tag['type'] + '</strong> ' : '') +
-      (_tag['types'] != undefined && _tag['types'][0] != undefined ? _tag['types'][0] + ' ' : '')+
-      (_tag['name'] != undefined ? _tag['name'] + ' ' : '') +
-      (_tag['description'] != undefined ? _tag['description'] + ' ' : '') +
-      (_tag['title'] != undefined ? _tag['title'] + ' ' : '') +
-      (_tag['url'] != undefined ? _tag['url'] + ' ' : '')+
-      (_tag['local'] != undefined ? _tag['local'] + ' ' : '')+ '\n';
-      #(_tag['headersisibility'] != undefined ? _tag['visibility'] + ' ' : '') + '\n';
-    _tags.push(tag);
-
-  #TODO AG create template, maybe with mustache.js
-  return '<div class="api_snippet"><h2 class="api_call">' + method + '</h2><div class="jsdoc">' + (source.summary ? source.summary + '\n' : '') +_tags.join('\n').trim()+ '\n</div>\n<pre class="prettyprint source-code"><code>' + source.code + '\n</code></pre></div>';
-
 exports.getOptions = getOptions
 exports.hashDoc = hashDoc
 exports.ignoreVcs = ignoreVcs
@@ -351,6 +351,6 @@ exports.buildFileObjects = buildFileObjects
 exports.parseHeaders = parseHeaders
 exports.indexLinker = indexLinker
 exports.fileLinker = fileLinker
+exports.importTemplateResources = importTemplateResources
+exports.formatCode = formatCode
 exports.toclinker = toclinker
-exports.format_code = format_code
-exports.import_resource = import_resource

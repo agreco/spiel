@@ -12,8 +12,7 @@ describe 'cleanseFiles', ->
     expect(-> helpers.cleanseFiles()).to.throw('helpers.cleanseFiles -> Missing argument [files]')
   
   it 'should only return the files used for parsing html/css/js/markdown', ->
-    dir = ['./']
-    files = helpers.getFiles dir
-    files = helpers.cleanseFiles(files)
+    files =  helpers.cleanseFiles helpers.getFiles './'
+    
     for file in files
       expect(/\.(js|css|htm(l)|markdown|md|md(own))$/.test(file)).to.be.true

@@ -16,7 +16,7 @@ describe 'parseHeaders', ->
     expect(-> helpers.parseHeaders()).to.throw('helpers.parseHeaders -> Missing argument [files]')
 
   it 'should return a headers object containing header objects', ->
-    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles ['./']
+    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './'
     headersObj = helpers.parseHeaders(files, 'h1')
     
     assert.isObject(headersObj)

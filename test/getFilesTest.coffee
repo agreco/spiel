@@ -12,9 +12,9 @@ describe 'getFiles', ->
     expect(fn).to.throw('helpers.getFiles -> Missing argument [pathName]')
 
   it 'should return and resolve a deep array of files from a given directory', ->
-    dir = ['./']
+    dir = './'
     files = helpers.getFiles dir
     expect(files).to.be.defined
-    for file, i in files
+    for file in files
       fs.exists file, (exists) ->
         expect(exists).to.be.true

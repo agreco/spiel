@@ -24,7 +24,7 @@ describe 'fileLinker', ->
     expect(-> helpers.fileLinker(['./'])).to.throw('helpers.fileLinker -> Missing argument [headers]')
 
   it 'should return a string of html containing a name linked header', ->
-    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles ['./test/resources']
+    files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './test/resources'
     headersObj = helpers.parseHeaders files, 'h1'
     generatedLinkedFiles = helpers.fileLinker files, headersObj.headers, './test/resources'
 
