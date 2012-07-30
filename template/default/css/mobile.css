@@ -97,7 +97,7 @@ body {
 
 #home li h2 a,
 #index li a {
-  background:url(arrow.png) no-repeat 100% 50%;
+  background:url(../imgs/arrow.png) no-repeat 100% 50%;
   color:#66686A;
   display:block;
   font-size:16px;
