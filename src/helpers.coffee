@@ -264,24 +264,29 @@ fileLinker = (files, headers, output) ->
 
   return files
 
-importTemplateResources = (options) ->
+importTemplateResources = (options, resource) ->
   unless options
     throw new Error('helpers.importTemplateResources -> Missing argument [options]')
 
-  resourcePath = options.output.concat('/' + resource)
-  fs.mkdirSync(resourcePath, 511) if not fs.existsSync(resourcePath)
+  unless options.output
+    throw new Error('helpers.importTemplateResources -> Missing argument property [options.output]')  
 
-  resources = getFiles([options.template + "/" + resource + "/"]).filter (file) ->
-    return file.match("/\.("+resource+")$/")
+  unless resource
+    throw new Error('helpers.importTemplateResources -> Missing argument [resource]')
+
+  if not options.template then options.template = 'template/default' 
+
+  resourceOutputPath = options.output.concat('/' + resource)
+  if not fs.existsSync(resourceOutputPath) then fs.mkdirSync(resourceOutputPath, 511)
+
+  resources = getFiles(options.template + "/" + resource).filter (file) -> 
+    return file.match(("\.("+resource+")$"))
 
   resources.forEach (file) ->
-    newfileName = resourcePath.concat('/' + file.split('/').pop())
+    newfileName = resourceOutputPath.concat('/' + path.basename(file))
     fs.readFile file, (err, data) ->
       throw(err) if err
       fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
-      return
-    return
-  return
 
 formatCode = (source) ->
   i = undefined
