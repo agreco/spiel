@@ -5,6 +5,7 @@ markdown = require('github-flavored-markdown').parse
 dox =  require '../lib/dox'
 
 regex = {
+  vcs: /^\.(git|svn|cvs|hg|bzr|idea|nbprojects)$/
   externalLink: /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g
   externalClassName: '$1 class="external" $2'
   heading: /<h1>([^<]*).?<\/h1>/g
@@ -56,7 +57,7 @@ ignoreVcs = (pathName) ->
   unless pathName
     throw new Error('helpers.ignoreVcs -> Missing argument [pathName]')
 
-  return !path.basename(pathName).match(/^\.(git|svn|cvs|hg|bzr|idea|nbprojects)$/)
+  return !path.basename(pathName).match(regex.vcs)
 
 getFiles = (pathName) ->
   unless pathName
@@ -274,19 +275,25 @@ importTemplateResources = (options, resource) ->
   unless resource
     throw new Error('helpers.importTemplateResources -> Missing argument [resource]')
 
-  if not options.template then options.template = 'template/default' 
+  if not options.template then options.template = 'template/default'
+
+  encoding = 'utf8'
 
   resourceOutputPath = options.output.concat('/' + resource)
   if not fs.existsSync(resourceOutputPath) then fs.mkdirSync(resourceOutputPath, 511)
 
-  resources = getFiles(options.template + "/" + resource).filter (file) -> 
+  resources = getFiles(options.template + "/" + resource).filter (file) ->
+    if resource.match(/(img(s)|image(s))/)
+      resource = 'png|gif|jpeg'
+      encoding = 'binary'
     return file.match(("\.("+resource+")$"))
-
+    
   resources.forEach (file) ->
-    newfileName = resourceOutputPath.concat('/' + path.basename(file))
+    newFile = resourceOutputPath.concat('/' + path.basename(file))
     fs.readFile file, (err, data) ->
       throw(err) if err
-      fs.writeFile newfileName, data, 'utf8', (err) -> throw(err) if err
+      fs.writeFile newFile, data, encoding, (err) ->
+        throw(err) if err
 
 formatCode = (source) ->
   i = undefined

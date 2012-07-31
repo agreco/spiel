@@ -47,4 +47,15 @@ describe 'importTemplateResources', ->
     for file in jsFiles
       expect(path.extname(file)).to.equal('.js')
     
-    childProcess.exec("rm -r " + jsDir)  
+    childProcess.exec("rm -r " + jsDir)
+
+  it 'should import image template resources into the output directory', ->
+    outputDir = 'test/resources'
+    imgsDir = outputDir + '/imgs'
+
+    helpers.importTemplateResources {output:outputDir}, 'imgs'
+
+    fs.exists imgsDir, (exists) ->
+      expect(exists).to.be.true
+
+    childProcess.exec("rm -r " + imgsDir)
