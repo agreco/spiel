@@ -13,6 +13,24 @@ regex = {
   closeHeading: /<\/h1[^>]*.?>/
 }
 
+templates = {
+
+  jsDoc: (summary, tags, source) ->
+    return """
+      <div class="api_snippet">
+      <div class="jsdoc">
+      #{summary}
+      #{tags}
+      </div>
+      <pre class="prettyprint source-code">
+      <code>
+      #{source.code}
+      </code>
+      </pre>
+      </div>\n
+    """
+}
+
 getOptions = ->
   opts = {
     output: path
@@ -32,10 +50,10 @@ getOptions = ->
 
 hashDoc = (outline, fileType) ->
   unless outline
-    throw new Error('helpers.hashDoc -> Missing argument [outline]')
+    throw new Error 'helpers.hashDoc -> Missing argument [outline]'
 
   unless fileType
-    throw new Error('helpers.hashDoc -> Missing argument [fileType]')
+    throw new Error 'helpers.hashDoc -> Missing argument [fileType]'
 
   hash = undefined
 
@@ -55,13 +73,13 @@ hashDoc = (outline, fileType) ->
 
 ignoreVcs = (pathName) ->
   unless pathName
-    throw new Error('helpers.ignoreVcs -> Missing argument [pathName]')
+    throw new Error 'helpers.ignoreVcs -> Missing argument [pathName]'
 
   return !path.basename(pathName).match(regex.vcs)
 
 getFiles = (pathName) ->
   unless pathName
-    throw new Error('helpers.getFiles -> Missing argument [pathName]')
+    throw new Error 'helpers.getFiles -> Missing argument [pathName]'
 
   stat = undefined
   collection = []
@@ -81,31 +99,12 @@ getFiles = (pathName) ->
 
   return collection
 
-renderTemplate = (input, template) ->
-  unless input
-    throw new Error('helpers.renderTemplate -> Missing argument [input]')
-
-  unless template
-    throw new Error('helpers.renderTemplate -> Missing argument [template]')
-
-  _api = ''
-
-  if input.outline
-    for inputObj, i in input.outline
-      if inputObj and inputObj.isPrivate is false and inputObj.code
-        _api += inputObj.code
-    template = template.replace(/\$api/g, '<div id="api">' + _api + "</div>");
-
-  else template = template.replace(/\$api/g, "")
-
-  return template = template.replace(/\$title/g, input.title);
-
 catPath = (file, delimiter) ->
   unless file 
-    throw new Error('helpers.catPath -> Missing argument [file]')
+    throw new Error 'helpers.catPath -> Missing argument [file]'
 
   unless delimiter
-    throw new Error('helpers.catPath -> Missing argument [delimiter]')
+    throw new Error 'helpers.catPath -> Missing argument [delimiter]'
   
   delimiter = delimiter or '_'
 
@@ -121,7 +120,7 @@ catPath = (file, delimiter) ->
 
 cleanseFiles = (files) ->
   unless files
-    throw new Error('helpers.cleanseFiles -> Missing argument [files]')
+    throw new Error 'helpers.cleanseFiles -> Missing argument [files]'
   
   fileArray = []
   
@@ -133,7 +132,7 @@ cleanseFiles = (files) ->
 
 buildFileObjects = (files) ->
   unless files
-    throw new Error('helpers.buildFileObjects -> Missing argument [files]')
+    throw new Error 'helpers.buildFileObjects -> Missing argument [files]'
 
   return files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
@@ -166,7 +165,7 @@ buildFileObjects = (files) ->
 
 parseHeaders = (files, header) ->
   unless files
-    throw new Error('helpers.parseHeaders -> Missing argument [files]')
+    throw new Error 'helpers.parseHeaders -> Missing argument [files]'
   
   unless header
     header = 'h1'
@@ -197,7 +196,7 @@ lowerCaseSort = (a,b) ->
 
 indexLinker = (headings, outputdir) ->
   unless headings
-    throw new Error('helpers.indexLinker -> Missing argument [headings]')
+    throw new Error 'helpers.indexLinker -> Missing argument [headings]'
 
   clonedHeaders = {}
   keywords = {}
@@ -233,10 +232,10 @@ indexLinker = (headings, outputdir) ->
 
 fileLinker = (files, headers, output) ->
   unless files
-    throw new Error('helpers.fileLinker -> Missing argument [files]')
+    throw new Error 'helpers.fileLinker -> Missing argument [files]'
 
   unless headers
-    throw new Error('helpers.fileLinker -> Missing argument [headers]')
+    throw new Error 'helpers.fileLinker -> Missing argument [headers]'
 
   keywords = Object.keys(headers).sort().reverse().map (kw) ->
     return kw.replace(regex.heading, '$1')
@@ -267,13 +266,13 @@ fileLinker = (files, headers, output) ->
 
 importTemplateResources = (options, resource) ->
   unless options
-    throw new Error('helpers.importTemplateResources -> Missing argument [options]')
+    throw new Error 'helpers.importTemplateResources -> Missing argument [options]'
 
   unless options.output
-    throw new Error('helpers.importTemplateResources -> Missing argument property [options.output]')  
+    throw new Error 'helpers.importTemplateResources -> Missing argument property [options.output]'
 
   unless resource
-    throw new Error('helpers.importTemplateResources -> Missing argument [resource]')
+    throw new Error 'helpers.importTemplateResources -> Missing argument [resource]'
 
   if not options.template then options.template = 'template/default'
 
@@ -295,32 +294,56 @@ importTemplateResources = (options, resource) ->
       fs.writeFile newFile, data, encoding, (err) ->
         throw(err) if err
 
-formatCode = (source) ->
-  i = undefined
-  len = undefined
-  _tag = undefined
-  tag = ''
-  tags = source.tags
-  _tags = []
-  method = ''
-  code = source.code
+formatJsDoc = (source) ->
+  unless source
+    throw new Error 'helpers.formatJsDoc -> Missing argument [source]'
 
-  for i in tags #TODO AG not happy about this. Need to refactor.
-    _tag = tags[i];
-    if _tag['method'] then method = _tag['method']
+  tags = []
 
-    tag = ((_tag['type'] != undefined && _tag['type'] != 'method') ? '<strong>@' + _tag['type'] + '</strong> ' : '') +
-      (_tag['types'] != undefined && _tag['types'][0] != undefined ? _tag['types'][0] + ' ' : '')+
-      (_tag['name'] != undefined ? _tag['name'] + ' ' : '') +
-      (_tag['description'] != undefined ? _tag['description'] + ' ' : '') +
-      (_tag['title'] != undefined ? _tag['title'] + ' ' : '') +
-      (_tag['url'] != undefined ? _tag['url'] + ' ' : '')+
-      (_tag['local'] != undefined ? _tag['local'] + ' ' : '')+ '\n';
-      #(_tag['headersisibility'] != undefined ? _tag['visibility'] + ' ' : '') + '\n';
-    _tags.push(tag);
+  for tag in source.tags
+    tagStr = ''
+    tagStr += '<strong>@' + tag['type'] +  '</strong> '  if tag['type']?
+    tagStr += tag['types'][0] + ' ' if tag['types']? and tag['types'][0]?
+    tagStr += tag['name'] + ' ' if tag['name']?
+    tagStr += tag['description'] + ' ' if tag['description']?
+    tagStr += tag['title'] + ' ' if tag['title']?
+    tagStr += tag['url'] + ' ' if tag['url']?
+    tagStr += tag['local'] + ' ' if tag['local']?
+    tags.push(tagStr)
 
-  #TODO AG create template, maybe with mustache.js
-  return '<div class="api_snippet"><h2 class="api_call">' + method + '</h2><div class="jsdoc">' + (source.summary ? source.summary + '\n' : '') +_tags.join('\n').trim()+ '\n</div>\n<pre class="prettyprint source-code"><code>' + source.code + '\n</code></pre></div>';
+  tags = tags.join('\n').trim()
+  summary = source.summary ? source.summary + '\n' : ''
+  
+  return templates.jsDoc summary, tags, source
+
+buildJsDocs = (files) ->
+  unless files
+    throw new Error 'helpers.buildJsDoc -> Missing argument [files]'
+
+  for file in files
+    if file.src?
+      for src in file.src
+        if src.code? and src.tags?
+          src.code = formatJsDoc(src)
+
+renderTemplate = (input, template) ->
+  unless input
+    throw new Error 'helpers.renderTemplate -> Missing argument [input]'
+
+  unless template
+    throw new Error 'helpers.renderTemplate -> Missing argument [template]'
+
+  api = ''
+
+  if input.outline
+    for inputObj, i in input.outline
+      if inputObj and inputObj.isPrivate is false and inputObj.code
+        api += inputObj.code
+    template = template.replace /\$api/g, '<div id="api">' + api + "</div>"
+
+  else template = template.replace /\$api/g, ""
+
+  return template = template.replace /\$title/g, input.title
 
 toclinker = (toc, files, toc_regex) ->
   tocline = toc_regex || /(\S*).\s*{(.+)}/
@@ -356,7 +379,6 @@ exports.getOptions = getOptions
 exports.hashDoc = hashDoc
 exports.ignoreVcs = ignoreVcs
 exports.getFiles = getFiles
-exports.renderTemplate = renderTemplate
 exports.catPath = catPath
 exports.cleanseFiles = cleanseFiles
 exports.buildFileObjects = buildFileObjects
@@ -364,5 +386,6 @@ exports.parseHeaders = parseHeaders
 exports.indexLinker = indexLinker
 exports.fileLinker = fileLinker
 exports.importTemplateResources = importTemplateResources
-exports.formatCode = formatCode
+exports.formatJsDoc = formatJsDoc
+exports.renderTemplate = renderTemplate
 exports.toclinker = toclinker
