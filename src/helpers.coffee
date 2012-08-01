@@ -14,7 +14,6 @@ regex = {
 }
 
 templates = {
-
   jsDoc: (summary, tags, source) ->
     return """
       <div class="api_snippet">
@@ -36,13 +35,13 @@ getOptions = ->
     output: path
     template: path
     specs: path
-    dir: path
+    src: path
   }
 
   shortHands = {
     o: ["--output"]
-    d: ["--dir"]
-    s: ["--specs"]
+    sr: ["--src"]
+    sp: ["--specs"]
     t: ["--template"]
   }
 

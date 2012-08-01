@@ -11,9 +11,9 @@ describe 'getOptions', ->
     options = helpers.getOptions()
     expect(options.output).to.be.undefined
   
-  it 'should not return a dir path', ->
+  it 'should not return a src path', ->
     options = helpers.getOptions()
-    expect(options.dir).to.be.undefined
+    expect(options.src).to.be.undefined
 
   it 'should not return a template path', ->
     options = helpers.getOptions()
@@ -34,16 +34,16 @@ describe 'getOptions', ->
     expect(options.output).to.exist
     expect(options.output).to.eql path.resolve(output)
 
-  it 'should resolve and return a directory path when supplying a dir option', ->
-    dir = './src'
+  it 'should resolve and return a src path when supplying a src option', ->
+    src = './src'
     process.argv = [
       'node'
       'speil.js'
-      '-d='+dir
+      '-sr='+src
     ]
     options = helpers.getOptions()
-    expect(options.dir).to.exist
-    fs.exists options.dir, (exists) ->
+    expect(options.src).to.exist
+    fs.exists options.src, (exists) ->
       expect(exists).to.be.true
 
   it 'should resolve and return a speclet path when supplying a spec option', ->
@@ -51,7 +51,7 @@ describe 'getOptions', ->
     process.argv = [
       'node'
       'speil.js'
-      '-s='+specs
+      '-sp='+specs
     ]
     options = helpers.getOptions()
     expect(options.specs).to.exist
