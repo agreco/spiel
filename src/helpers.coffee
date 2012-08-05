@@ -3,6 +3,8 @@ fs = require 'fs'
 nopt = require 'nopt'
 markdown = require('github-flavored-markdown').parse
 dox =  require '../lib/dox'
+defaultTemplatePath = '../template/default'
+rootPath = ''
 
 regex = {
   vcs: /^\.(git|svn|cvs|hg|bzr|idea|nbprojects)$/
@@ -11,6 +13,7 @@ regex = {
   heading: /<h1>([^<]*).?<\/h1>/g
   openHeading: /<h1[^>]*.?>/
   closeHeading: /<\/h1[^>]*.?>/
+  whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/
 }
 
 templates = {
@@ -32,20 +35,74 @@ templates = {
 
 getOptions = ->
   opts = {
+    root:path
     output: path
-    template: path
     specs: path
     src: path
+    template: path
   }
 
   shortHands = {
+    r: ["--root"]
     o: ["--output"]
-    sr: ["--src"]
     sp: ["--specs"]
+    sr: ["--src"]
     t: ["--template"]
   }
 
   return nopt(opts, shortHands, process.argv)
+
+ignoreVcs = (pathName) ->
+  unless pathName
+    throw new Error 'helpers.ignoreVcs -> Missing argument [pathName]'
+
+  return !path.basename(pathName).match(regex.vcs)
+
+getFiles = (pathName) ->
+  unless pathName
+    throw new Error 'helpers.getFiles -> Missing argument [pathName]'
+
+  collection = []
+
+  pathName = [pathName] if pathName not instanceof Array
+  pathName = pathName.filter ignoreVcs
+  pathName.forEach (file) ->
+    if fs.statSync(file).isDirectory()
+      newfiles = fs.readdirSync(file).map (f) ->
+        return path.join file, f
+      collection = collection.concat getFiles newfiles
+    else collection.push file
+  
+  return collection
+
+catPath = (file, delimiter) ->
+  unless file 
+    throw new Error 'helpers.catPath -> Missing argument [file]'
+
+  unless delimiter
+    throw new Error 'helpers.catPath -> Missing argument [delimiter]'
+  
+  file = file.replace(rootPath, '') if file.match rootPath
+  
+  delimiter = delimiter or '_'
+
+  pathArr = file.split "/"
+  pathArr = pathArr.map (index) -> return index.replace /^\.+/g, ""
+  pathArr = pathArr.filter (index) -> return index isnt ""
+
+  return file = pathArr.join(delimiter) + ".html"
+
+cleanseFiles = (files) ->
+  unless files
+    throw new Error 'helpers.cleanseFiles -> Missing argument [files]'
+  
+  fileArray = []
+  
+  for file, i in files
+    if file and file.match(regex.whitelist)
+      fileArray.push(file)
+
+  return fileArray
 
 hashDoc = (outline, fileType) ->
   unless outline
@@ -70,65 +127,6 @@ hashDoc = (outline, fileType) ->
 
   return hash
 
-ignoreVcs = (pathName) ->
-  unless pathName
-    throw new Error 'helpers.ignoreVcs -> Missing argument [pathName]'
-
-  return !path.basename(pathName).match(regex.vcs)
-
-getFiles = (pathName) ->
-  unless pathName
-    throw new Error 'helpers.getFiles -> Missing argument [pathName]'
-
-  stat = undefined
-  collection = []
-
-  if pathName not instanceof Array
-    pathName = [pathName] 
-
-  pathName = pathName.filter(ignoreVcs)
-
-  pathName.forEach (file) ->
-    stat = fs.statSync(file)
-    if stat.isDirectory()
-      newfiles = fs.readdirSync(file).map (f) ->
-        return path.join(file, f);
-      collection = collection.concat(getFiles(newfiles))
-    else collection.push(file)
-
-  return collection
-
-catPath = (file, delimiter) ->
-  unless file 
-    throw new Error 'helpers.catPath -> Missing argument [file]'
-
-  unless delimiter
-    throw new Error 'helpers.catPath -> Missing argument [delimiter]'
-  
-  delimiter = delimiter or '_'
-
-  pathArr = file.split "/"
-
-  pathArr = pathArr.map (index) ->
-    return index.replace /^\.+/g, ""
-  
-  pathArr = pathArr.filter (index) ->
-    return index isnt ""
-
-  return file = pathArr.join(delimiter) + ".html"
-
-cleanseFiles = (files) ->
-  unless files
-    throw new Error 'helpers.cleanseFiles -> Missing argument [files]'
-  
-  fileArray = []
-  
-  for file, i in files
-    if file and file.match(/\.(js|css|htm(l)|markdown|md|md(own))$/)
-      fileArray.push(file)
-
-  return fileArray
-
 buildFileObjects = (files) ->
   unless files
     throw new Error 'helpers.buildFileObjects -> Missing argument [files]'
@@ -143,7 +141,7 @@ buildFileObjects = (files) ->
     if /\.(js)$/.test(file) # JS files
       content = dox.parseComments(content)
       #TODO build extened file object from the content array
-      description = content[0].description.full if content and content[0]
+      description = content?[0]?.description?.full?
       source.push hashDoc item, "js" for item in content
     
     else if file.match(/\.(markdown|md|md(own))$/) # Markdown files
@@ -152,7 +150,7 @@ buildFileObjects = (files) ->
 
     else if file.match(/\.(sass)$/) # SaSS CSS files
       content = dox.parseComments(content);
-      description = content[0].description.full if content and content[0]
+      description = content?[0]?.description?.full?
       source.push hashDoc item, "sass" for item in content
 
     return {
@@ -263,6 +261,24 @@ fileLinker = (files, headers, output) ->
 
   return files
 
+renderTemplate = (input, template) ->
+  unless input
+    throw new Error 'helpers.renderTemplate -> Missing argument [input]'
+
+  unless template
+    throw new Error 'helpers.renderTemplate -> Missing argument [template]'
+
+  api = ''
+  
+  if input.src?
+    for inputObj in input.src
+      api += inputObj.code if inputObj? and inputObj.code?
+    template = template.replace /\$api/g, '<div id="api">' + api + "</div>"
+  else 
+    template = template.replace /\$api/g, ""
+
+  return template = template.replace /\$title/g, input.name
+
 importTemplateResources = (options, resource) ->
   unless options
     throw new Error 'helpers.importTemplateResources -> Missing argument [options]'
@@ -273,8 +289,8 @@ importTemplateResources = (options, resource) ->
   unless resource
     throw new Error 'helpers.importTemplateResources -> Missing argument [resource]'
 
-  if not options.template then options.template = 'template/default'
-
+  options.template = path.resolve(__dirname, defaultTemplatePath) if !options.template?
+  
   encoding = 'utf8'
 
   resourceOutputPath = options.output.concat('/' + resource)
@@ -315,9 +331,17 @@ formatJsDoc = (source) ->
   
   return templates.jsDoc summary, tags, source
 
-buildJsDocs = (files) ->
+setRootPath = (root) ->
+  unless root
+    throw new Error 'helpers.setRootPath -> Missing argument [root]'
+  rootPath = root.replace /\/?~\/+/, '/'
+  return rootPath
+
+### CODE BELOW UNTESTED ###
+
+processJsDoc = (files) ->
   unless files
-    throw new Error 'helpers.buildJsDoc -> Missing argument [files]'
+    throw new Error 'helpers.processJsDoc -> Missing argument [files]'
 
   for file in files
     if file.src?
@@ -325,24 +349,15 @@ buildJsDocs = (files) ->
         if src.code? and src.tags?
           src.code = formatJsDoc(src)
 
-renderTemplate = (input, template) ->
-  unless input
-    throw new Error 'helpers.renderTemplate -> Missing argument [input]'
+  return files
 
-  unless template
-    throw new Error 'helpers.renderTemplate -> Missing argument [template]'
+processFiles = (pathName) ->
+  pathName = rootPath? unless pathName
+  return buildFileObjects cleanseFiles getFiles pathName
 
-  api = ''
-
-  if input.outline
-    for inputObj, i in input.outline
-      if inputObj and inputObj.isPrivate is false and inputObj.code
-        api += inputObj.code
-    template = template.replace /\$api/g, '<div id="api">' + api + "</div>"
-
-  else template = template.replace /\$api/g, ""
-
-  return template = template.replace /\$title/g, input.title
+processTemplate = (options, resources) ->
+  for resource in resources
+    importTemplateResources(options, resource)
 
 toclinker = (toc, files, toc_regex) ->
   tocline = toc_regex || /(\S*).\s*{(.+)}/
@@ -372,7 +387,7 @@ toc_expander = (h1bag, indent, pathpart) ->
   matching_h1s = matching_h1s.sort(caseless_sort).map (matching_h1) ->
     return indent + '* ' + matching_h1;
 
-  return matching_h1s.join("\n").replace(/_/g,"\\_");
+  return matching_h1s.join("\n").replace(/_/g,"\\_")
 
 exports.getOptions = getOptions
 exports.hashDoc = hashDoc
@@ -386,5 +401,8 @@ exports.indexLinker = indexLinker
 exports.fileLinker = fileLinker
 exports.importTemplateResources = importTemplateResources
 exports.formatJsDoc = formatJsDoc
+exports.processJsDoc = processJsDoc
 exports.renderTemplate = renderTemplate
-exports.toclinker = toclinker
+exports.processFiles = processFiles
+exports.processTemplate = processTemplate 
+exports.setRootPath = setRootPath

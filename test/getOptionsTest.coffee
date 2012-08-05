@@ -7,6 +7,10 @@ should = chai.should()
 
 describe 'getOptions', ->
 
+  it 'should not return an root path', ->
+    options = helpers.getOptions()
+    expect(options.dir).to.be.undefined
+
   it 'should not return an output path', ->
     options = helpers.getOptions()
     expect(options.output).to.be.undefined
@@ -22,6 +26,17 @@ describe 'getOptions', ->
   it 'should not return a speclets path', ->
     options = helpers.getOptions()
     expect(options.specs).to.be.undefined
+
+  it 'should return an root path when supplying an root option', ->
+    root = './'
+    process.argv = [
+      'node'
+      'speil.js'
+      '-r='+root
+    ]
+    options = helpers.getOptions()
+    expect(options.root).to.exist
+    expect(options.root).to.eql path.resolve(root)
 
   it 'should return an output path when supplying an output option', ->
     output = './docs'
