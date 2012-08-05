@@ -17,16 +17,16 @@ regex = {
 }
 
 templates = {
-  jsDoc: (summary, tags, source) ->
+  jsDoc: (name, tags, outline) ->
     return """
       <div class="api_snippet">
       <div class="jsdoc">
-      #{summary}
+      <h2>#{name}</h2>
       #{tags}
       </div>
       <pre class="prettyprint source-code">
       <code>
-      #{source.code}
+      <h2>#{outline.code}</h2>
       </code>
       </pre>
       </div>\n
@@ -122,6 +122,7 @@ hashDoc = (outline, fileType) ->
         code          : outline.code
         description   : outline.description
         summary       : outline.description.summary
+        body          : outline.description.body
         ctx           : outline.ctx
       }
 
@@ -133,31 +134,25 @@ buildFileObjects = (files) ->
 
   return files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
-
-    description = null
-    source = []
-    obj = {}
-
-    if /\.(js)$/.test(file) # JS files
+    outline = []
+    
+    if file.match(/\.(js)$/) # JS files
       content = dox.parseComments(content)
       #TODO build extened file object from the content array
-      description = content?[0]?.description?.full?
-      source.push hashDoc item, "js" for item in content
+      outline.push hashDoc item, "js" for item in content
     
     else if file.match(/\.(markdown|md|md(own))$/) # Markdown files
       content = markdown(content)
-      description = content if content 
+      outline = content if content 
 
     else if file.match(/\.(sass)$/) # SaSS CSS files
       content = dox.parseComments(content);
-      description = content?[0]?.description?.full?
-      source.push hashDoc item, "sass" for item in content
+      outline.push hashDoc item, "sass" for item in content
 
     return {
       path: file
       name: catPath(file, '.')
-      desc: description
-      src: if source.length < 1 then null else source
+      outline: outline
     }
 
 parseHeaders = (files, header) ->
@@ -261,23 +256,25 @@ fileLinker = (files, headers, output) ->
 
   return files
 
-renderTemplate = (input, template) ->
-  unless input
-    throw new Error 'helpers.renderTemplate -> Missing argument [input]'
+renderTemplate = (file, template) ->
+  unless file
+    throw new Error 'helpers.renderTemplate -> Missing argument [file]'
 
   unless template
     throw new Error 'helpers.renderTemplate -> Missing argument [template]'
 
-  api = ''
+  outline = file.outline
+  template = template.replace /\$summary/g, outline[0].summary if outline[0]?.summary?
+  template = template.replace /\$body/g, outline[0].body if outline[0]?.body?
   
-  if input.src?
-    for inputObj in input.src
-      api += inputObj.code if inputObj? and inputObj.code?
+  api = ''
+  if outline?
+    for outlineObj in outline
+      api += outlineObj.code if outlineObj? and outlineObj.code?
     template = template.replace /\$api/g, '<div id="api">' + api + "</div>"
-  else 
-    template = template.replace /\$api/g, ""
-
-  return template = template.replace /\$title/g, input.name
+  else template = template.replace /\$api/g, ""
+  
+  return template
 
 importTemplateResources = (options, resource) ->
   unless options
@@ -309,13 +306,13 @@ importTemplateResources = (options, resource) ->
       fs.writeFile newFile, data, encoding, (err) ->
         throw(err) if err
 
-formatJsDoc = (source) ->
-  unless source
-    throw new Error 'helpers.formatJsDoc -> Missing argument [source]'
+formatJsDoc = (outline) ->
+  unless outline
+    throw new Error 'helpers.formatJsDoc -> Missing argument [outline]'
 
   tags = []
 
-  for tag in source.tags
+  for tag in outline.tags
     tagStr = ''
     tagStr += '<strong>@' + tag['type'] +  '</strong> '  if tag['type']?
     tagStr += tag['types'][0] + ' ' if tag['types']? and tag['types'][0]?
@@ -327,9 +324,9 @@ formatJsDoc = (source) ->
     tags.push(tagStr)
 
   tags = tags.join('\n').trim()
-  summary = source.summary ? source.summary + '\n' : ''
+  name = outline.ctx.name
   
-  return templates.jsDoc summary, tags, source
+  return templates.jsDoc name, tags, outline
 
 setRootPath = (root) ->
   unless root
@@ -344,10 +341,10 @@ processJsDoc = (files) ->
     throw new Error 'helpers.processJsDoc -> Missing argument [files]'
 
   for file in files
-    if file.src?
-      for src in file.src
-        if src.code? and src.tags?
-          src.code = formatJsDoc(src)
+    if file.outline?
+      for outline in file.outline
+        if outline.code? and outline.tags?
+          outline.code = formatJsDoc(outline)
 
   return files
 

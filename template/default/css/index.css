@@ -239,7 +239,8 @@ div.api_snippet div.jsdoc{
   color:#242220;
   font-size:1.4em;
   font-weight:bold;
-  margin:1.3em 0px 0.8em 0px;
+/*  margin:1.3em 0px 0.8em 0px;*/
+  margin:0;
   text-shadow:#FFFFFF 0px 1px 1px;
 }
 #content h3 {

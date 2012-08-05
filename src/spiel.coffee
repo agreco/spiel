@@ -31,8 +31,7 @@ headersObj = helpers.parseHeaders files, 'h1'
 linkedFiles =  helpers.fileLinker files, headersObj.headers, options.root
 linkedFiles.push({
   name: "_index.html"
-  content: helpers.indexLinker headersObj.headers, options.output
-  source: null
+  outline: helpers.indexLinker headersObj.headers, options.output
 })
 
 helpers.processTemplate options, ['css', 'js', 'imgs']

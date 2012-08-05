@@ -50,8 +50,7 @@
 
   linkedFiles.push({
     name: "_index.html",
-    content: helpers.indexLinker(headersObj.headers, options.output),
-    source: null
+    outline: helpers.indexLinker(headersObj.headers, options.output)
   });
 
   helpers.processTemplate(options, ['css', 'js', 'imgs']);

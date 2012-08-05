@@ -27,8 +27,8 @@
   };
 
   templates = {
-    jsDoc: function(summary, tags, source) {
-      return "<div class=\"api_snippet\">\n<div class=\"jsdoc\">\n" + summary + "\n" + tags + "\n</div>\n<pre class=\"prettyprint source-code\">\n<code>\n" + source.code + "\n</code>\n</pre>\n</div>\n";
+    jsDoc: function(name, tags, outline) {
+      return "<div class=\"api_snippet\">\n<div class=\"jsdoc\">\n<h2>" + name + "</h2>\n" + tags + "\n</div>\n<pre class=\"prettyprint source-code\">\n<code>\n<h2>" + outline.code + "</h2>\n</code>\n</pre>\n</div>\n";
     }
   };
 
@@ -137,6 +137,7 @@
           code: outline.code,
           description: outline.description,
           summary: outline.description.summary,
+          body: outline.description.body,
           ctx: outline.ctx
         };
     }
@@ -148,40 +149,31 @@
       throw new Error('helpers.buildFileObjects -> Missing argument [files]');
     }
     return files = files.map(function(file) {
-      var content, description, item, obj, source, _i, _j, _len, _len1;
+      var content, item, outline, _i, _j, _len, _len1;
       content = fs.readFileSync(file, "utf8").toString();
-      description = null;
-      source = [];
-      obj = {};
-      if (/\.(js)$/.test(file)) {
+      outline = [];
+      if (file.match(/\.(js)$/)) {
         content = dox.parseComments(content);
-        if (content && content[0]) {
-          description = content[0].description.full;
-        }
         for (_i = 0, _len = content.length; _i < _len; _i++) {
           item = content[_i];
-          source.push(hashDoc(item, "js"));
+          outline.push(hashDoc(item, "js"));
         }
       } else if (file.match(/\.(markdown|md|md(own))$/)) {
         content = markdown(content);
         if (content) {
-          description = content;
+          outline = content;
         }
       } else if (file.match(/\.(sass)$/)) {
         content = dox.parseComments(content);
-        if (content && content[0]) {
-          description = content[0].description.full;
-        }
         for (_j = 0, _len1 = content.length; _j < _len1; _j++) {
           item = content[_j];
-          source.push(hashDoc(item, "sass"));
+          outline.push(hashDoc(item, "sass"));
         }
       }
       return {
         path: file,
         name: catPath(file, '.'),
-        desc: description,
-        src: source.length < 1 ? null : source
+        outline: outline
       };
     });
   };
@@ -296,28 +288,34 @@
     return files;
   };
 
-  renderTemplate = function(input, template) {
-    var api, inputObj, _i, _len, _ref;
-    if (!input) {
-      throw new Error('helpers.renderTemplate -> Missing argument [input]');
+  renderTemplate = function(file, template) {
+    var api, outline, outlineObj, _i, _len, _ref, _ref1;
+    if (!file) {
+      throw new Error('helpers.renderTemplate -> Missing argument [file]');
     }
     if (!template) {
       throw new Error('helpers.renderTemplate -> Missing argument [template]');
     }
+    outline = file.outline;
+    if (((_ref = outline[0]) != null ? _ref.summary : void 0) != null) {
+      template = template.replace(/\$summary/g, outline[0].summary);
+    }
+    if (((_ref1 = outline[0]) != null ? _ref1.body : void 0) != null) {
+      template = template.replace(/\$body/g, outline[0].body);
+    }
     api = '';
-    if (input.src != null) {
-      _ref = input.src;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        inputObj = _ref[_i];
-        if ((inputObj != null) && (inputObj.code != null)) {
-          api += inputObj.code;
+    if (outline != null) {
+      for (_i = 0, _len = outline.length; _i < _len; _i++) {
+        outlineObj = outline[_i];
+        if ((outlineObj != null) && (outlineObj.code != null)) {
+          api += outlineObj.code;
         }
       }
       template = template.replace(/\$api/g, '<div id="api">' + api + "</div>");
     } else {
       template = template.replace(/\$api/g, "");
     }
-    return template = template.replace(/\$title/g, input.name);
+    return template;
   };
 
   importTemplateResources = function(options, resource) {
@@ -362,13 +360,13 @@
     });
   };
 
-  formatJsDoc = function(source) {
-    var summary, tag, tagStr, tags, _i, _len, _ref, _ref1;
-    if (!source) {
-      throw new Error('helpers.formatJsDoc -> Missing argument [source]');
+  formatJsDoc = function(outline) {
+    var name, tag, tagStr, tags, _i, _len, _ref;
+    if (!outline) {
+      throw new Error('helpers.formatJsDoc -> Missing argument [outline]');
     }
     tags = [];
-    _ref = source.tags;
+    _ref = outline.tags;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       tag = _ref[_i];
       tagStr = '';
@@ -396,10 +394,8 @@
       tags.push(tagStr);
     }
     tags = tags.join('\n').trim();
-    summary = (_ref1 = source.summary) != null ? _ref1 : source.summary + {
-      '\n': ''
-    };
-    return templates.jsDoc(summary, tags, source);
+    name = outline.ctx.name;
+    return templates.jsDoc(name, tags, outline);
   };
 
   setRootPath = function(root) {
@@ -415,18 +411,18 @@
 
 
   processJsDoc = function(files) {
-    var file, src, _i, _j, _len, _len1, _ref;
+    var file, outline, _i, _j, _len, _len1, _ref;
     if (!files) {
       throw new Error('helpers.processJsDoc -> Missing argument [files]');
     }
     for (_i = 0, _len = files.length; _i < _len; _i++) {
       file = files[_i];
-      if (file.src != null) {
-        _ref = file.src;
+      if (file.outline != null) {
+        _ref = file.outline;
         for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-          src = _ref[_j];
-          if ((src.code != null) && (src.tags != null)) {
-            src.code = formatJsDoc(src);
+          outline = _ref[_j];
+          if ((outline.code != null) && (outline.tags != null)) {
+            outline.code = formatJsDoc(outline);
           }
         }
       }
