@@ -12,7 +12,7 @@ describe 'formatJsDocTest', ->
   expectedFormattedJsDoc = """
   <div class="api_snippet">
   <div class="jsdoc">
-  <h1>Sample Class</h1>
+  <h2>Sample</h2>
   <strong>@class</strong> 
   <strong>@param</strong> String name The name of the class 
   <strong>@param</strong> Number x The number of the class 
@@ -30,7 +30,7 @@ describe 'formatJsDocTest', ->
   </div>
   <div class="api_snippet">
   <div class="jsdoc">
-  <h1>getName</h1>
+  <h2>getName</h2>
   <strong>@function</strong> 
   <strong>@public</strong> 
   <strong>@return</strong> String name The name of the class
@@ -45,7 +45,7 @@ describe 'formatJsDocTest', ->
   </div>
   <div class="api_snippet">
   <div class="jsdoc">
-  <h1>setName</h1>
+  <h2>setName</h2>
   <strong>@function</strong> 
   <strong>@public</strong> 
   <strong>@param</strong> String name The name of the class which to set to 
@@ -61,7 +61,7 @@ describe 'formatJsDocTest', ->
   </div>
   <div class="api_snippet">
   <div class="jsdoc">
-  <h1>squareNumber</h1>
+  <h2>squareNumber</h2>
   <strong>@function</strong> 
   <strong>@private</strong> 
   <strong>@return</strong> Number number The squared number of the class
@@ -78,18 +78,18 @@ describe 'formatJsDocTest', ->
   """
 
   it 'should throw when the argument is missing', ->
-    expect(-> helpers.formatJsDoc()).to.throw('helpers.formatJsDoc -> Missing argument [source]')
+    expect(-> helpers.formatJsDoc()).to.throw('helpers.formatJsDoc -> Missing argument [outline]')
 
   it 'should return a string of html formatted JsDoc comments', ->
     formattedJsDoc = ''
     files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './test/resources'
     
     for file in files
-      if file.src?
-        for src in file.src
-          if src.code? and src.tags?
-            src.code = helpers.formatJsDoc(src)
-            formattedJsDoc += src.code
-
+      if file.outline?
+        for outline in file.outline
+          if outline.code? and outline.tags? 
+            outline.code = helpers.formatJsDoc(outline)
+            formattedJsDoc += outline.code
+            
     expect(expectedFormattedJsDoc).to.equal(formattedJsDoc)
 

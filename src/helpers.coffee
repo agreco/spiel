@@ -14,6 +14,10 @@ regex = {
   openHeading: /<h1[^>]*.?>/
   closeHeading: /<\/h1[^>]*.?>/
   whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/
+  header: (header) -> return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'
+  externalAnchor: /<h1><a href="[^#>]*#/g
+  localAnchor: /<h1><a href="#/g 
+  achorNamed: '<h1><a name="'
 }
 
 templates = {
@@ -26,10 +30,18 @@ templates = {
       </div>
       <pre class="prettyprint source-code">
       <code>
-      <h2>#{outline.code}</h2>
+      #{outline.code}
       </code>
       </pre>
       </div>\n
+    """
+  headers: (clonedHeader, keyword) ->
+     return """
+      <li><a href="#{clonedHeader}##{keyword}">#{keyword}</a></li>
+    """
+  linkedHeader: (header, text) ->
+    return """
+      <h1><a href="#{header}##{text}">#{text}</a></h1>
     """
 }
 
@@ -53,17 +65,13 @@ getOptions = ->
   return nopt(opts, shortHands, process.argv)
 
 ignoreVcs = (pathName) ->
-  unless pathName
-    throw new Error 'helpers.ignoreVcs -> Missing argument [pathName]'
-
+  throw new Error 'helpers.ignoreVcs -> Missing argument [pathName]' unless pathName
   return !path.basename(pathName).match(regex.vcs)
 
 getFiles = (pathName) ->
-  unless pathName
-    throw new Error 'helpers.getFiles -> Missing argument [pathName]'
+  throw new Error 'helpers.getFiles -> Missing argument [pathName]' unless pathName
 
   collection = []
-
   pathName = [pathName] if pathName not instanceof Array
   pathName = pathName.filter ignoreVcs
   pathName.forEach (file) ->
@@ -76,16 +84,11 @@ getFiles = (pathName) ->
   return collection
 
 catPath = (file, delimiter) ->
-  unless file 
-    throw new Error 'helpers.catPath -> Missing argument [file]'
-
-  unless delimiter
-    throw new Error 'helpers.catPath -> Missing argument [delimiter]'
+  throw new Error 'helpers.catPath -> Missing argument [file]' unless file 
+  throw new Error 'helpers.catPath -> Missing argument [delimiter]' unless delimiter
   
   file = file.replace(rootPath, '') if file.match rootPath
-  
   delimiter = delimiter or '_'
-
   pathArr = file.split "/"
   pathArr = pathArr.map (index) -> return index.replace /^\.+/g, ""
   pathArr = pathArr.filter (index) -> return index isnt ""
@@ -93,11 +96,9 @@ catPath = (file, delimiter) ->
   return file = pathArr.join(delimiter) + ".html"
 
 cleanseFiles = (files) ->
-  unless files
-    throw new Error 'helpers.cleanseFiles -> Missing argument [files]'
+  throw new Error 'helpers.cleanseFiles -> Missing argument [files]' unless files
   
   fileArray = []
-  
   for file, i in files
     if file and file.match(regex.whitelist)
       fileArray.push(file)
@@ -105,13 +106,8 @@ cleanseFiles = (files) ->
   return fileArray
 
 hashDoc = (outline, fileType) ->
-  unless outline
-    throw new Error 'helpers.hashDoc -> Missing argument [outline]'
-
-  unless fileType
-    throw new Error 'helpers.hashDoc -> Missing argument [fileType]'
-
-  hash = undefined
+  throw new Error 'helpers.hashDoc -> Missing argument [outline]' unless outline
+  throw new Error 'helpers.hashDoc -> Missing argument [fileType]' unless fileType
 
   switch fileType
     when 'js'
@@ -129,52 +125,49 @@ hashDoc = (outline, fileType) ->
   return hash
 
 buildFileObjects = (files) ->
-  unless files
-    throw new Error 'helpers.buildFileObjects -> Missing argument [files]'
+  throw new Error 'helpers.buildFileObjects -> Missing argument [files]' unless files
 
   return files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
     outline = []
     
-    if file.match(/\.(js)$/) # JS files
-      content = dox.parseComments(content)
-      #TODO build extened file object from the content array
-      outline.push hashDoc item, "js" for item in content
+    if file.match /\.(js)$/ # JS files TODO build extened file object from the content array
+      content = dox.parseComments content
+      outline.push hashDoc item, "js" for item in content 
     
-    else if file.match(/\.(markdown|md|md(own))$/) # Markdown files
-      content = markdown(content)
+    else if file.match /\.(markdown|md|md(own))$/ # Markdown files
+      content = markdown content
       outline = content if content 
 
-    else if file.match(/\.(sass)$/) # SaSS CSS files
-      content = dox.parseComments(content);
+    else if file.match /\.(sass)$/ # SaSS CSS files
+      content = dox.parseComments content
       outline.push hashDoc item, "sass" for item in content
 
     return {
       path: file
-      name: catPath(file, '.')
+      name: catPath file, '.'
       outline: outline
     }
 
 parseHeaders = (files, header) ->
-  unless files
-    throw new Error 'helpers.parseHeaders -> Missing argument [files]'
+  throw new Error 'helpers.parseHeaders -> Missing argument [files]' unless files
   
-  unless header
-    header = 'h1'
-
+  header = 'h1' unless header
   headers = {}
   headerLinks = {}
-  headerRegex = new RegExp('(<'+ header + '>([^<]*).?<\\/' + header + '>)', 'g')
+  headerRegex = new RegExp regex.header(header), 'g'
   
-  files.forEach (fileObj) ->
-    accumlatedHeaders = []
-    headings = ""
+  for file in files
+    ah = [] # accumulated headers
+    if file.outline
+      if file.outline instanceof Array
+        for outline in file.outline
+          ah.push headings[1] while headings = headerRegex.exec(outline.description.full)
+      else
+        ah.push headings[1] while headings = headerRegex.exec(file.outline)
 
-    accumlatedHeaders.push headings[1] while (headings = headerRegex.exec(fileObj.desc)) isnt null
-
-    accumlatedHeaders.forEach (h) -> headers[h] = fileObj.name
-
-    headerLinks[fileObj.name] = accumlatedHeaders
+    ah.forEach (h) -> headers[h] = file.name if file?.name
+    headerLinks[file.name] = ah
 
   return {
     headers : headers
@@ -182,13 +175,12 @@ parseHeaders = (files, header) ->
   }
 
 lowerCaseSort = (a,b) ->
-    if typeof a isnt "string" or typeof b isnt "string"
-      return 0
-    return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+    if typeof a isnt "string" or typeof b isnt "string" then out = 0
+    else out = a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+    return out
 
 indexLinker = (headings, outputdir) ->
-  unless headings
-    throw new Error 'helpers.indexLinker -> Missing argument [headings]'
+  throw new Error 'helpers.indexLinker -> Missing argument [headings]' unless headings
 
   clonedHeaders = {}
   keywords = {}
@@ -197,15 +189,15 @@ indexLinker = (headings, outputdir) ->
   for heading of headings
     h = heading.replace(regex.heading, '$1')
     clonedHeaders[h] = headings[heading]
-
+  
   keywords = Object.keys(clonedHeaders).sort(lowerCaseSort)
   
   formatter = (keyword) ->
     if outputdir
-      return '<li><a href="' + clonedHeaders[keyword] + '#' + keyword + '">' + keyword + '</a></li>'
+      return templates.headers(clonedHeaders[keyword], keyword) 
     else
-      return '<li><a href="#' + keyword + '">' + keyword + '</a></li>'
-
+      return templates.headers('', keyword)
+  
   keywords.forEach (keyword) ->
     letter = keyword.toLocaleUpperCase().substring(0,1)
     if typeof keywordLetters[letter] is "undefined"
@@ -223,45 +215,34 @@ indexLinker = (headings, outputdir) ->
   return '<h1>Index</h1>\n<div id="index">\n' + keywordsMarked.join("\n") + '\n</div>'
 
 fileLinker = (files, headers, output) ->
-  unless files
-    throw new Error 'helpers.fileLinker -> Missing argument [files]'
+  throw new Error 'helpers.fileLinker -> Missing argument [files]' unless files
+  throw new Error 'helpers.fileLinker -> Missing argument [headers]' unless headers
 
-  unless headers
-    throw new Error 'helpers.fileLinker -> Missing argument [headers]'
-
-  keywords = Object.keys(headers).sort().reverse().map (kw) ->
-    return kw.replace(regex.heading, '$1')
-
-  if not keywords.length then return files
-
-  re = new RegExp(regex.openHeading.source + '(' + keywords.join("|") + ')' + regex.closeHeading.source, 'g')
+  keywords = Object.keys(headers).sort().reverse().map (kw) -> return kw.replace regex.heading, '$1'
+  
+  return files if not keywords.length
+  
+  re = new RegExp regex.openHeading.source + '(' + keywords.join("|") + ')' + regex.closeHeading.source, 'g'
 
   for file in files
-    input = String(file.desc)
-    input = input.replace(regex.externalLink, regex.externalClassName);
-
-    if output
-      input = input.replace re, (header, text) ->
-        return '<h1><a href="'+headers[header]+'#'+text+'">'+text+'<\/a></h1>'
-
-      input = input.replace(/<h1><a href="[^#>]*#/g,'<h1><a name="')
-
-    else
-      input = input.replace re, (header, match) ->
-        return '<h1><a href="' + '#' + match + '">' + match + '<\/a></h1>'
-
-      input = input.replace(/<h1><a href="#/g,'<h1><a name="')
-
-    file.desc = input
-
+    if file?.outline instanceof Array
+      for outline in file.outline
+        if outline.description?.full
+          input = String(outline.description.full).replace regex.externalLink, regex.externalClassName
+          if output then input = input.replace(re, (header, match) ->
+              return templates.linkedHeader headers[header], match
+            ).replace regex.externalAnchor, regex.achorNamed
+          else
+            input = input.replace(re, (header, match) -> 
+              return templates.linkedHeader '', match
+            ).replace regex.localAnchor, regex.achorNamed
+          outline.description.full = input
+          
   return files
 
 renderTemplate = (file, template) ->
-  unless file
-    throw new Error 'helpers.renderTemplate -> Missing argument [file]'
-
-  unless template
-    throw new Error 'helpers.renderTemplate -> Missing argument [template]'
+  throw new Error 'helpers.renderTemplate -> Missing argument [file]' unless file
+  throw new Error 'helpers.renderTemplate -> Missing argument [template]' unless template
 
   outline = file.outline
   template = template.replace /\$summary/g, outline[0].summary if outline[0]?.summary?
@@ -277,14 +258,9 @@ renderTemplate = (file, template) ->
   return template
 
 importTemplateResources = (options, resource) ->
-  unless options
-    throw new Error 'helpers.importTemplateResources -> Missing argument [options]'
-
-  unless options.output
-    throw new Error 'helpers.importTemplateResources -> Missing argument property [options.output]'
-
-  unless resource
-    throw new Error 'helpers.importTemplateResources -> Missing argument [resource]'
+  throw new Error 'helpers.importTemplateResources -> Missing argument [options]' unless options
+  throw new Error 'helpers.importTemplateResources -> Missing argument property [options.output]' unless options.output
+  throw new Error 'helpers.importTemplateResources -> Missing argument [resource]' unless resource
 
   options.template = path.resolve(__dirname, defaultTemplatePath) if !options.template?
   
@@ -307,11 +283,9 @@ importTemplateResources = (options, resource) ->
         throw(err) if err
 
 formatJsDoc = (outline) ->
-  unless outline
-    throw new Error 'helpers.formatJsDoc -> Missing argument [outline]'
+  throw new Error 'helpers.formatJsDoc -> Missing argument [outline]' unless outline
 
   tags = []
-
   for tag in outline.tags
     tagStr = ''
     tagStr += '<strong>@' + tag['type'] +  '</strong> '  if tag['type']?
@@ -322,23 +296,20 @@ formatJsDoc = (outline) ->
     tagStr += tag['url'] + ' ' if tag['url']?
     tagStr += tag['local'] + ' ' if tag['local']?
     tags.push(tagStr)
-
   tags = tags.join('\n').trim()
   name = outline.ctx.name
   
   return templates.jsDoc name, tags, outline
 
 setRootPath = (root) ->
-  unless root
-    throw new Error 'helpers.setRootPath -> Missing argument [root]'
-  rootPath = root.replace /\/?~\/+/, '/'
-  return rootPath
+  throw new Error 'helpers.setRootPath -> Missing argument [root]' unless root
+
+  return rootPath = root.replace /\/?~\/+/, '/'
 
 ### CODE BELOW UNTESTED ###
 
 processJsDoc = (files) ->
-  unless files
-    throw new Error 'helpers.processJsDoc -> Missing argument [files]'
+  throw new Error 'helpers.processJsDoc -> Missing argument [files]' unless files
 
   for file in files
     if file.outline?

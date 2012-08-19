@@ -18,7 +18,7 @@ describe 'parseHeaders', ->
   it 'should return a headers object containing header objects', ->
     files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './'
     headersObj = helpers.parseHeaders(files, 'h1')
-    
+
     assert.isObject(headersObj)
     expect(headersObj).to.not.be.empty
 

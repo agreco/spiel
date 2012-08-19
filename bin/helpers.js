@@ -23,12 +23,24 @@
     heading: /<h1>([^<]*).?<\/h1>/g,
     openHeading: /<h1[^>]*.?>/,
     closeHeading: /<\/h1[^>]*.?>/,
-    whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/
+    whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/,
+    header: function(header) {
+      return '(<' + header + '>([^<]*).?<\\/' + header + '>)';
+    },
+    externalAnchor: /<h1><a href="[^#>]*#/g,
+    localAnchor: /<h1><a href="#/g,
+    achorNamed: '<h1><a name="'
   };
 
   templates = {
     jsDoc: function(name, tags, outline) {
-      return "<div class=\"api_snippet\">\n<div class=\"jsdoc\">\n<h2>" + name + "</h2>\n" + tags + "\n</div>\n<pre class=\"prettyprint source-code\">\n<code>\n<h2>" + outline.code + "</h2>\n</code>\n</pre>\n</div>\n";
+      return "<div class=\"api_snippet\">\n<div class=\"jsdoc\">\n<h2>" + name + "</h2>\n" + tags + "\n</div>\n<pre class=\"prettyprint source-code\">\n<code>\n" + outline.code + "\n</code>\n</pre>\n</div>\n";
+    },
+    headers: function(clonedHeader, keyword) {
+      return "<li><a href=\"" + clonedHeader + "#" + keyword + "\">" + keyword + "</a></li>";
+    },
+    linkedHeader: function(header, text) {
+      return "<h1><a href=\"" + header + "#" + text + "\">" + text + "</a></h1>";
     }
   };
 
@@ -127,7 +139,6 @@
     if (!fileType) {
       throw new Error('helpers.hashDoc -> Missing argument [fileType]');
     }
-    hash = void 0;
     switch (fileType) {
       case 'js':
         hash = {
@@ -179,7 +190,7 @@
   };
 
   parseHeaders = function(files, header) {
-    var headerLinks, headerRegex, headers;
+    var ah, file, headerLinks, headerRegex, headers, headings, outline, _i, _j, _len, _len1, _ref;
     if (!files) {
       throw new Error('helpers.parseHeaders -> Missing argument [files]');
     }
@@ -188,19 +199,32 @@
     }
     headers = {};
     headerLinks = {};
-    headerRegex = new RegExp('(<' + header + '>([^<]*).?<\\/' + header + '>)', 'g');
-    files.forEach(function(fileObj) {
-      var accumlatedHeaders, headings;
-      accumlatedHeaders = [];
-      headings = "";
-      while ((headings = headerRegex.exec(fileObj.desc)) !== null) {
-        accumlatedHeaders.push(headings[1]);
+    headerRegex = new RegExp(regex.header(header), 'g');
+    for (_i = 0, _len = files.length; _i < _len; _i++) {
+      file = files[_i];
+      ah = [];
+      if (file.outline) {
+        if (file.outline instanceof Array) {
+          _ref = file.outline;
+          for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+            outline = _ref[_j];
+            while (headings = headerRegex.exec(outline.description.full)) {
+              ah.push(headings[1]);
+            }
+          }
+        } else {
+          while (headings = headerRegex.exec(file.outline)) {
+            ah.push(headings[1]);
+          }
+        }
       }
-      accumlatedHeaders.forEach(function(h) {
-        return headers[h] = fileObj.name;
+      ah.forEach(function(h) {
+        if (file != null ? file.name : void 0) {
+          return headers[h] = file.name;
+        }
       });
-      return headerLinks[fileObj.name] = accumlatedHeaders;
-    });
+      headerLinks[file.name] = ah;
+    }
     return {
       headers: headers,
       headerLinks: headerLinks
@@ -208,10 +232,13 @@
   };
 
   lowerCaseSort = function(a, b) {
+    var out;
     if (typeof a !== "string" || typeof b !== "string") {
-      return 0;
+      out = 0;
+    } else {
+      out = a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
     }
-    return a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+    return out;
   };
 
   indexLinker = function(headings, outputdir) {
@@ -229,9 +256,9 @@
     keywords = Object.keys(clonedHeaders).sort(lowerCaseSort);
     formatter = function(keyword) {
       if (outputdir) {
-        return '<li><a href="' + clonedHeaders[keyword] + '#' + keyword + '">' + keyword + '</a></li>';
+        return templates.headers(clonedHeaders[keyword], keyword);
       } else {
-        return '<li><a href="#' + keyword + '">' + keyword + '</a></li>';
+        return templates.headers('', keyword);
       }
     };
     keywords.forEach(function(keyword) {
@@ -254,7 +281,7 @@
   };
 
   fileLinker = function(files, headers, output) {
-    var file, input, keywords, re, _i, _len;
+    var file, input, keywords, outline, re, _i, _j, _len, _len1, _ref, _ref1;
     if (!files) {
       throw new Error('helpers.fileLinker -> Missing argument [files]');
     }
@@ -270,20 +297,25 @@
     re = new RegExp(regex.openHeading.source + '(' + keywords.join("|") + ')' + regex.closeHeading.source, 'g');
     for (_i = 0, _len = files.length; _i < _len; _i++) {
       file = files[_i];
-      input = String(file.desc);
-      input = input.replace(regex.externalLink, regex.externalClassName);
-      if (output) {
-        input = input.replace(re, function(header, text) {
-          return '<h1><a href="' + headers[header] + '#' + text + '">' + text + '<\/a></h1>';
-        });
-        input = input.replace(/<h1><a href="[^#>]*#/g, '<h1><a name="');
-      } else {
-        input = input.replace(re, function(header, match) {
-          return '<h1><a href="' + '#' + match + '">' + match + '<\/a></h1>';
-        });
-        input = input.replace(/<h1><a href="#/g, '<h1><a name="');
+      if ((file != null ? file.outline : void 0) instanceof Array) {
+        _ref = file.outline;
+        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+          outline = _ref[_j];
+          if ((_ref1 = outline.description) != null ? _ref1.full : void 0) {
+            input = String(outline.description.full).replace(regex.externalLink, regex.externalClassName);
+            if (output) {
+              input = input.replace(re, function(header, match) {
+                return templates.linkedHeader(headers[header], match);
+              }).replace(regex.externalAnchor, regex.achorNamed);
+            } else {
+              input = input.replace(re, function(header, match) {
+                return templates.linkedHeader('', match);
+              }).replace(regex.localAnchor, regex.achorNamed);
+            }
+            outline.description.full = input;
+          }
+        }
       }
-      file.desc = input;
     }
     return files;
   };
@@ -402,8 +434,7 @@
     if (!root) {
       throw new Error('helpers.setRootPath -> Missing argument [root]');
     }
-    rootPath = root.replace(/\/?~\/+/, '/');
-    return rootPath;
+    return rootPath = root.replace(/\/?~\/+/, '/');
   };
 
   /* CODE BELOW UNTESTED

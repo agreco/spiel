@@ -9,12 +9,10 @@ should = chai.should()
 describe 'renderTemplate', ->
 
   it 'should throw an error when arguments are missing', ->
-    fn = -> helpers.renderTemplate()
-    expect(fn).to.throw('helpers.renderTemplate -> Missing argument [input]')
+    expect(-> helpers.renderTemplate()).to.throw('helpers.renderTemplate -> Missing argument [file]')
 
   it 'should throw an error when the second argument is missing', ->
-    fn = -> helpers.renderTemplate(1)
-    expect(fn).to.throw('helpers.renderTemplate -> Missing argument [template]')
+    expect(-> helpers.renderTemplate(1)).to.throw('helpers.renderTemplate -> Missing argument [template]')
 
   it 'should create the default template from a given document', ->
     jsOutline = []

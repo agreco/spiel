@@ -13,34 +13,7 @@ describe 'indexLinker', ->
   headersObj = undefined
   indexContent = undefined
   expectedContent = """
-  <h1>Index</h1>
-  <div id="index">
-  <h2>I</h2>
-  <ul>
-  <li><a href="README.md.html#Installation">Installation</a></li>
-  </ul>
-  <h2>Q</h2>
-  <ul>
-  <li><a href="README.md.html#Quickstart">Quickstart</a></li>
-  </ul>
-  <h2>R</h2>
-  <ul>
-  <li><a href="README.md.html#Requirements">Requirements</a></li>
-  </ul>
-  <h2>S</h2>
-  <ul>
-  <li><a href="test.resources.Sample.js.html#Sample Class">Sample Class</a></li>
-  <li><a href="README.md.html#spiel">spiel</a></li>
-  </ul>
-  <h2>T</h2>
-  <ul>
-  <li><a href="README.md.html#TODO’s">TODO’s</a></li>
-  </ul>
-  <h2>U</h2>
-  <ul>
-  <li><a href="README.md.html#Usage">Usage</a></li>
-  </ul>
-  </div>
+  <h1>Index</h1>\n<div id="index">\n<h2>G</h2>\n<ul>\n<li><a href="test.resources.Sample.js.html#getName">getName</a></li>\n</ul>\n<h2>I</h2>\n<ul>\n<li><a href="README.md.html#Installation">Installation</a></li>\n</ul>\n<h2>Q</h2>\n<ul>\n<li><a href="README.md.html#Quickstart">Quickstart</a></li>\n</ul>\n<h2>R</h2>\n<ul>\n<li><a href="README.md.html#Requirements">Requirements</a></li>\n</ul>\n<h2>S</h2>\n<ul>\n<li><a href="test.resources.Sample.js.html#Sample Class">Sample Class</a></li>\n<li><a href="test.resources.Sample.js.html#setName">setName</a></li>\n<li><a href="README.md.html#spiel">spiel</a></li>\n<li><a href="test.resources.Sample.js.html#squareNumber">squareNumber</a></li>\n</ul>\n<h2>T</h2>\n<ul>\n<li><a href="README.md.html#TODO’s">TODO’s</a></li>\n</ul>\n<h2>U</h2>\n<ul>\n<li><a href="README.md.html#Usage">Usage</a></li>\n</ul>\n</div>
   """
   it 'should throw when the argument is missing', ->
     expect(-> helpers.indexLinker()).to.throw('helpers.indexLinker -> Missing argument [headings]')
