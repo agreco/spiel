@@ -18,9 +18,10 @@ describe 'indexLinker', ->
   it 'should throw when the argument is missing', ->
     expect(-> helpers.indexLinker()).to.throw('helpers.indexLinker -> Missing argument [headings]')
 
-  it 'should return a string of html containing a list of header links', ->
+  it 'should return a string of html containing a list of header links', (done) ->
     files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './'
     headersObj = helpers.parseHeaders files, 'h1'
     generatedContent = helpers.indexLinker headersObj.headers, './test/resources'
+    done()
 
     expect(generatedContent).to.equal(expectedContent)

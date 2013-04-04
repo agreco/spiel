@@ -25,7 +25,7 @@ describe 'parseHeaders', ->
   it 'should return a headers property in headersObj', ->
     expect(headersObj.headers).to.be.defined
     expect(headersObj.headers).to.not.be.empty
-  
+
   it 'should return a headerLinks property in headersObj', ->
     expect(headersObj.headerLinks).to.be.defined
     expect(headersObj.headerLinks).to.not.be.empty

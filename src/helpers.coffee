@@ -16,7 +16,7 @@ regex = {
   whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/
   header: (header) -> return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'
   externalAnchor: /<h1><a href="[^#>]*#/g
-  localAnchor: /<h1><a href="#/g 
+  localAnchor: /<h1><a href="#/g
   achorNamed: '<h1><a name="'
 }
 
@@ -80,13 +80,13 @@ getFiles = (pathName) ->
         return path.join file, f
       collection = collection.concat getFiles newfiles
     else collection.push file
-  
+
   return collection
 
 catPath = (file, delimiter) ->
-  throw new Error 'helpers.catPath -> Missing argument [file]' unless file 
+  throw new Error 'helpers.catPath -> Missing argument [file]' unless file
   throw new Error 'helpers.catPath -> Missing argument [delimiter]' unless delimiter
-  
+
   file = file.replace(rootPath, '') if file.match rootPath
   delimiter = delimiter or '_'
   pathArr = file.split "/"
@@ -97,7 +97,7 @@ catPath = (file, delimiter) ->
 
 cleanseFiles = (files) ->
   throw new Error 'helpers.cleanseFiles -> Missing argument [files]' unless files
-  
+
   fileArray = []
   for file, i in files
     if file and file.match(regex.whitelist)
@@ -130,14 +130,14 @@ buildFileObjects = (files) ->
   return files = files.map (file) -> # Read files
     content = fs.readFileSync(file, "utf8").toString()
     outline = []
-    
+
     if file.match /\.(js)$/ # JS files TODO build extened file object from the content array
       content = dox.parseComments content
-      outline.push hashDoc item, "js" for item in content 
-    
+      outline.push hashDoc item, "js" for item in content
+
     else if file.match /\.(markdown|md|md(own))$/ # Markdown files
       content = markdown content
-      outline = content if content 
+      outline = content if content
 
     else if file.match /\.(sass)$/ # SaSS CSS files
       content = dox.parseComments content
@@ -151,12 +151,12 @@ buildFileObjects = (files) ->
 
 parseHeaders = (files, header) ->
   throw new Error 'helpers.parseHeaders -> Missing argument [files]' unless files
-  
+
   header = 'h1' unless header
   headers = {}
   headerLinks = {}
   headerRegex = new RegExp regex.header(header), 'g'
-  
+
   for file in files
     ah = [] # accumulated headers
     if file.outline
@@ -185,19 +185,19 @@ indexLinker = (headings, outputdir) ->
   clonedHeaders = {}
   keywords = {}
   keywordLetters = {}
-  
+
   for heading of headings
     h = heading.replace(regex.heading, '$1')
     clonedHeaders[h] = headings[heading]
-  
+
   keywords = Object.keys(clonedHeaders).sort(lowerCaseSort)
-  
+
   formatter = (keyword) ->
     if outputdir
-      return templates.headers(clonedHeaders[keyword], keyword) 
+      return templates.headers(clonedHeaders[keyword], keyword)
     else
       return templates.headers('', keyword)
-  
+
   keywords.forEach (keyword) ->
     letter = keyword.toLocaleUpperCase().substring(0,1)
     if typeof keywordLetters[letter] is "undefined"
@@ -219,9 +219,9 @@ fileLinker = (files, headers, output) ->
   throw new Error 'helpers.fileLinker -> Missing argument [headers]' unless headers
 
   keywords = Object.keys(headers).sort().reverse().map (kw) -> return kw.replace regex.heading, '$1'
-  
+
   return files if not keywords.length
-  
+
   re = new RegExp regex.openHeading.source + '(' + keywords.join("|") + ')' + regex.closeHeading.source, 'g'
 
   for file in files
@@ -233,11 +233,11 @@ fileLinker = (files, headers, output) ->
               return templates.linkedHeader headers[header], match
             ).replace regex.externalAnchor, regex.achorNamed
           else
-            input = input.replace(re, (header, match) -> 
+            input = input.replace(re, (header, match) ->
               return templates.linkedHeader '', match
             ).replace regex.localAnchor, regex.achorNamed
           outline.description.full = input
-          
+
   return files
 
 renderTemplate = (file, template) ->
@@ -247,14 +247,14 @@ renderTemplate = (file, template) ->
   outline = file.outline
   template = template.replace /\$summary/g, outline[0].summary if outline[0]?.summary?
   template = template.replace /\$body/g, outline[0].body if outline[0]?.body?
-  
+
   api = ''
   if outline?
     for outlineObj in outline
       api += outlineObj.code if outlineObj? and outlineObj.code?
     template = template.replace /\$api/g, '<div id="api">' + api + "</div>"
   else template = template.replace /\$api/g, ""
-  
+
   return template
 
 importTemplateResources = (options, resource) ->
@@ -263,18 +263,16 @@ importTemplateResources = (options, resource) ->
   throw new Error 'helpers.importTemplateResources -> Missing argument [resource]' unless resource
 
   options.template = path.resolve(__dirname, defaultTemplatePath) if !options.template?
-  
   encoding = 'utf8'
-
   resourceOutputPath = options.output.concat('/' + resource)
-  if not fs.existsSync(resourceOutputPath) then fs.mkdirSync(resourceOutputPath, 511)
 
+  if not fs.existsSync(resourceOutputPath) then fs.mkdirSync(resourceOutputPath, 511)
   resources = getFiles(options.template + "/" + resource).filter (file) ->
     if resource.match(/(img(s)|image(s))/)
       resource = 'png|gif|jpeg'
       encoding = 'binary'
     return file.match(("\.("+resource+")$"))
-    
+
   resources.forEach (file) ->
     newFile = resourceOutputPath.concat('/' + path.basename(file))
     fs.readFile file, (err, data) ->
@@ -288,17 +286,17 @@ formatJsDoc = (outline) ->
   tags = []
   for tag in outline.tags
     tagStr = ''
-    tagStr += '<strong>@' + tag['type'] +  '</strong> '  if tag['type']?
-    tagStr += tag['types'][0] + ' ' if tag['types']? and tag['types'][0]?
-    tagStr += tag['name'] + ' ' if tag['name']?
-    tagStr += tag['description'] + ' ' if tag['description']?
-    tagStr += tag['title'] + ' ' if tag['title']?
-    tagStr += tag['url'] + ' ' if tag['url']?
-    tagStr += tag['local'] + ' ' if tag['local']?
+    tagStr += '<strong>@' + tag.type +  '</strong> ' if tag.type?
+    tagStr += tag.types[0] + ' ' if tag.types?[0]?
+    tagStr += tag.name + ' ' if tag.name?
+    tagStr += tag.description + ' ' if tag.description?
+    tagStr += tag.title + ' ' if tag.title?
+    tagStr += tag.url + ' ' if tag.url?
+    tagStr += tag.local + ' ' if tag.local?
     tags.push(tagStr)
   tags = tags.join('\n').trim()
   name = outline.ctx.name
-  
+
   return templates.jsDoc name, tags, outline
 
 setRootPath = (root) ->
@@ -372,5 +370,5 @@ exports.formatJsDoc = formatJsDoc
 exports.processJsDoc = processJsDoc
 exports.renderTemplate = renderTemplate
 exports.processFiles = processFiles
-exports.processTemplate = processTemplate 
+exports.processTemplate = processTemplate
 exports.setRootPath = setRootPath

@@ -393,7 +393,7 @@
   };
 
   formatJsDoc = function(outline) {
-    var name, tag, tagStr, tags, _i, _len, _ref;
+    var name, tag, tagStr, tags, _i, _len, _ref, _ref1;
     if (!outline) {
       throw new Error('helpers.formatJsDoc -> Missing argument [outline]');
     }
@@ -402,26 +402,26 @@
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       tag = _ref[_i];
       tagStr = '';
-      if (tag['type'] != null) {
-        tagStr += '<strong>@' + tag['type'] + '</strong> ';
+      if (tag.type != null) {
+        tagStr += '<strong>@' + tag.type + '</strong> ';
       }
-      if ((tag['types'] != null) && (tag['types'][0] != null)) {
-        tagStr += tag['types'][0] + ' ';
+      if (((_ref1 = tag.types) != null ? _ref1[0] : void 0) != null) {
+        tagStr += tag.types[0] + ' ';
       }
-      if (tag['name'] != null) {
-        tagStr += tag['name'] + ' ';
+      if (tag.name != null) {
+        tagStr += tag.name + ' ';
       }
-      if (tag['description'] != null) {
-        tagStr += tag['description'] + ' ';
+      if (tag.description != null) {
+        tagStr += tag.description + ' ';
       }
-      if (tag['title'] != null) {
-        tagStr += tag['title'] + ' ';
+      if (tag.title != null) {
+        tagStr += tag.title + ' ';
       }
-      if (tag['url'] != null) {
-        tagStr += tag['url'] + ' ';
+      if (tag.url != null) {
+        tagStr += tag.url + ' ';
       }
-      if (tag['local'] != null) {
-        tagStr += tag['local'] + ' ';
+      if (tag.local != null) {
+        tagStr += tag.local + ' ';
       }
       tags.push(tagStr);
     }
