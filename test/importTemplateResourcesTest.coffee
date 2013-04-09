@@ -53,15 +53,10 @@ describe 'importTemplateResources', ->
   it 'should import image template resources into the output directory', (done) ->
     outputDir = 'test/resources'
     imgsDir = outputDir + '/imgs'
-    console.log('A');
     helpers.importTemplateResources {output:outputDir}, 'imgs'
     done()
-    console.log('B');
 
     fs.exists imgsDir, (exists) ->
       expect(exists).to.be.true
-      console.log('C');
 
-    console.log('D');
     childProcess.exec("rm -r " + imgsDir)
-    console.log('E');
