@@ -13,11 +13,13 @@ describe 'buildFileObjects', ->
 
   it 'should throw when the argument is missing', ->
     expect(-> helpers.buildFileObjects()).to.throw('helpers.buildFileObjects -> Missing argument [files]')
-  
-  it 'should return a files array containing file objects', ->
+
+  it 'should return a files array containing file objects', (done) ->
     files = helpers.buildFileObjects helpers.cleanseFiles helpers.getFiles './'
 
     assert.isArray(files)
+    done()
+
     expect(files).to.not.be.empty
 
   it 'should contain a path property in fileObj', ->
