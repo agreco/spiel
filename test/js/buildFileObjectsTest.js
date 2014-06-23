@@ -14,16 +14,13 @@ describe('.buildFileObjects()', function () {
     });
 
     it('should return a files array containing file objects and properties', function () {
-        var files = helpers.getFiles('./');
-        var cleansedFiles = helpers.cleanseFiles(files);
-        var fileObjs = helpers.buildFileObjects(cleansedFiles);
+        var fileObjs = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./')));
         assert.isArray(fileObjs);
         expect(fileObjs).to.not.be.empty;
         _.each(fileObjs, function (obj) {
-            expect(obj.path).to.defined;
-            expect(obj.name).to.defined;
-            expect(obj.desc).to.defined;
-            expect(obj.src).to.be.defined;
+            expect(obj.path).to.not.be.undefined;
+            expect(obj.name).to.not.be.undefined;
+            expect(obj.outline).to.not.be.undefined;
         });
     });
 });

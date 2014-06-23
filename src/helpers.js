@@ -89,15 +89,22 @@ module.exports = {
     },
 
     buildFileObjects: function buildFileObjects (files) {
-        return (files = _.map(_.isArray(files) ? files : [], function (file) {
+        return (files = _.map(_.isArray(files) ? files : [], function (file) { // TODO: Turn into a reduce!
             var content = fs.readFileSync(file, "utf8").toString(),
                 obj = {path: file, name: module.exports.concatPath(file, '.')};
-            if (file.match(regex.js)) try { // TODO: dox lib throwing, investigate!
-                obj.outline = _.reduce(dox.parseComments(content), function (acc, metaData) {
-                    return acc = acc.push(module.exports.hashDoc(metaData, "js")), acc;
-                }, []);
-            } catch (e) {} else if(file.match(regex.md) && (content = markdown(content))) obj.outline = content || "";
-            return obj;
+            file.match(regex.js) ? obj.outline = _.map(dox.parseComments(content), function (metaData) {
+                    return module.exports.hashDoc(metaData, "js"); }) : ((file.match(regex.md) &&
+            (content = markdown(content))) ? obj.outline = content || "";
+            return obj.outline = obj.outline || "", console.log(obj.outline), obj;
         }));
+    },
+
+    parseHeaders: function parseHeaders (files, header) {
+        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g');
+        return _.reduce(_.isArray(files) ? files : [], function (acc, file) {
+            return acc.headers[header] = _.filter(acc.headerLinks[file.name || "__unk"] = _.filter(file.outline || [],
+                function (ol) { return headerRegex.exec(_.isArray(ol) ? ol.description.full : file.ol)[1];
+            }), function (file) { if (file && file.name) return file.name; }), acc;
+        }, { headers: {}, headerLinks: {} });
     }
 };
