@@ -89,7 +89,7 @@ module.exports = {
     },
 
     buildFileObjects: function buildFileObjects (files) {
-        return files = _.map(_.isArray(files) ? files : [], function (file) {
+        return (files = _.map(_.isArray(files) ? files : [], function (file) {
             var content = fs.readFileSync(file, "utf8").toString(),
                 obj = {path: file, name: module.exports.concatPath(file, '.')};
             if (file.match(regex.js)) try { // TODO: dox lib throwing, investigate!
@@ -98,6 +98,6 @@ module.exports = {
                 }, []);
             } catch (e) {} else if(file.match(regex.md) && (content = markdown(content))) obj.outline = content || "";
             return obj;
-        });
+        }));
     }
 };
