@@ -1,6 +1,7 @@
 var _ = require('lodash'),
     defaultTemplatePath = '../template/default',
-    dox = require('../lib/dox'), // TODO: Investigate esprima
+    dox = require('dox'),
+    doxComments = dox.parseComments, // TODO: Investigate esprima
     fs = require('fs'),
     markdown = require('github-flavored-markdown').parse,
     nopt = require('nopt'),
@@ -89,22 +90,23 @@ module.exports = {
     },
 
     buildFileObjects: function buildFileObjects (files) {
-        return (files = _.map(_.isArray(files) ? files : [], function (file) { // TODO: Turn into a reduce!
-            var content = fs.readFileSync(file, "utf8").toString(),
-                obj = {path: file, name: module.exports.concatPath(file, '.')};
-            file.match(regex.js) ? obj.outline = _.map(dox.parseComments(content), function (metaData) {
-                    return module.exports.hashDoc(metaData, "js"); }) : ((file.match(regex.md) &&
-            (content = markdown(content))) ? obj.outline = content || "";
-            return obj.outline = obj.outline || "", console.log(obj.outline), obj;
-        }));
+        return !_.isArray(files) ? [] : _.reduce(files, function (acc, file) {
+            var buldflobj = this, obj = {}, content = fs.readFileSync(file, "utf8").toString();
+            try { obj.outline = file.match(regex.js) ? _.map(doxComments(content), function (metaData) {
+                return buldflobj.hashDoc(metaData, "js"); }) : file.match(regex.md) ? markdown(content) : "";
+            } catch (e) { obj.outline = ""; } // Boo, hiss, hiss, boo.
+            return obj.path = file, obj.name = buldflobj.concatPath(file, '.'), acc.push(obj), acc;
+        }, [], this);
     },
 
     parseHeaders: function parseHeaders (files, header) {
-        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g');
-        return _.reduce(_.isArray(files) ? files : [], function (acc, file) {
-            return acc.headers[header] = _.filter(acc.headerLinks[file.name || "__unk"] = _.filter(file.outline || [],
-                function (ol) { return headerRegex.exec(_.isArray(ol) ? ol.description.full : file.ol)[1];
-            }), function (file) { if (file && file.name) return file.name; }), acc;
+        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), headings;
+        return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
+            return _.each(acc.headerLinks[file.name || "__unk"] = _.filter(file.outline || [], function (outline) {
+                return _.isArray(outline) ? _.map(outline, function (acc, outline) {
+                    return (headerRegex.exec(outline.description.full))[1];
+                }) : headerRegex.exec(file.outline)[1];
+            }), function (h) { if (file.name) return acc.headers[h] = file.name; }), acc;
         }, { headers: {}, headerLinks: {} });
     }
 };

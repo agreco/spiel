@@ -9,6 +9,7 @@
     "dependencies" : {
         "coffee-script": "1.7.x",
         "chai": "1.9.x",
+        "dox": "0.4.x",
         "express": "3.4.x",
         "github-flavored-markdown": "1.x",
         "gulp": "3.x",

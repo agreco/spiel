@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     path = require('path'),
     fs = require('fs'),
-    dox = require('../../lib/dox'),
+    dox = require('dox'),
     helpers = require('../../src/helpers'),
     chai = require('chai'),
     expect = chai.expect,
@@ -10,7 +10,7 @@ var _ = require('lodash'),
 
 describe('.buildFileObjects()', function () {
     it('should return an empty array if [files] argument is missing', function () {
-        return expect(helpers.buildFileObjects()).to.be.empty;
+       return expect(helpers.buildFileObjects()).to.be.empty;
     });
 
     it('should return a files array containing file objects and properties', function () {
