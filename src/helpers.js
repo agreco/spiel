@@ -102,10 +102,10 @@ module.exports = {
     parseHeaders: function parseHeaders (files, header) {
         var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), heading;
         return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
-            return _.map(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outline) {
+            return _.filter(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outline) {
                 return (heading = outline.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
             }) : (heading = file.outline.match(headerRegex.exec)) ? [heading[0]] : [""], function (head) {
-                if (file && file.name) acc.headers[head] = file.name;}), acc;
+                if (file && file.name) if (!_.isEmpty(head)) acc.headers[head] = file.name;}), acc;
         }, { headers: {}, headerLinks: {} });
     }
 };
