@@ -17,7 +17,7 @@ describe('.parseHeaders()', function () {
     });
 
     it('should return a header object with a headers and headerLinks property', function () {
-        var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources'))),
+        var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./'))),
             headersObj = helpers.parseHeaders(files, 'h1');
         return assert.isObject(headersObj),
                expect(headersObj).to.not.be.empty,

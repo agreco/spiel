@@ -100,11 +100,12 @@ module.exports = {
     },
 
     parseHeaders: function parseHeaders (files, header) {
-        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g');
+        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), heading;
         return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
             return _.map(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outline) {
-                return outline.description.full.match(headerRegex)[0]; }) : [file.outline.match(headerRegex.exec)[0]],
-            function (head) { if (file && file.name) acc.headers[head] = file.name;}), acc;
+                return (heading = outline.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
+            }) : (heading = file.outline.match(headerRegex.exec)) ? [heading[0]] : [""], function (head) {
+                if (file && file.name) acc.headers[head] = file.name;}), acc;
         }, { headers: {}, headerLinks: {} });
     }
 };
