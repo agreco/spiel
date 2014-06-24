@@ -9,7 +9,7 @@ var _ = require('lodash'),
     rootPath = '',
 
     regex = { // Move to config
-        ignores: /\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
+        ignores: /^(node_modules)|\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
         externalLink: /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
         js: /\.(js)$/,
         markdown: /\.(markdown|md|md(own))$/,
@@ -76,7 +76,7 @@ module.exports = {
         });
     },
 
-    hashDoc: function hashDoc (outline, fileType) { // TODO: Extend to html/css
+    hashDoc: function hashDoc (outline, fileType) { // TODO: Extend to html/css and move to config.
         return _.isObject(outline) && !_.isEmpty(outline) && fileType === 'js' ? {
             tags : outline.tags || "",
             isPrivate : outline.isPrivate || "",
@@ -100,13 +100,11 @@ module.exports = {
     },
 
     parseHeaders: function parseHeaders (files, header) {
-        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), headings;
+        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g');
         return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
-            return _.isArray(file.outline) ? _.filter(file.outline, function (outline) { // TODO: Refactor
-                while (headings = headerRegex.exec(outline.description.full)) acc.headerLinks[file.name] = headings[1] ;
-            }) : function () { while (headings = headerRegex.exec(file.outline)) return headings[1] } (),
-            console.log(acc.headerLinks[file.name]),
-            _.each(acc.headerLinks, function (h) { if (file && file.name) return acc.headers[h] = file.name; }), acc;
+            return _.map(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outline) {
+                return outline.description.full.match(headerRegex)[0]; }) : [file.outline.match(headerRegex.exec)[0]],
+            function (head) { if (file && file.name) acc.headers[head] = file.name;}), acc;
         }, { headers: {}, headerLinks: {} });
     }
 };

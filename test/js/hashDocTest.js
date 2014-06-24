@@ -1,7 +1,7 @@
 var _ = require('lodash'),
     path = require('path'),
     fs = require('fs'),
-    dox = require('../../lib/dox'),
+    dox = require('dox'),
     helpers = require('../../src/helpers'),
     chai = require('chai'),
     expect = chai.expect,
