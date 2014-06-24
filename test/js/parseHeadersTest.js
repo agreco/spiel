@@ -19,7 +19,6 @@ describe('.parseHeaders()', function () {
     it('should return a headers object containing header objects', function () {
         var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources')));
         var headersObj = helpers.parseHeaders(files, 'h1');
-        console.log(headersObj);
         // assert.isObject(headersObj);
         // return expect(headersObj).to.not.be.empty;
     });

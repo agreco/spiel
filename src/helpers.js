@@ -18,7 +18,7 @@ var _ = require('lodash'),
         openHeading: /<h1[^>]*.?>/,
         closeHeading: /<\/h1[^>]*.,?>/,
         whitelist: /\.(js|css|htm(,l)|markdown|md|md(own))$/,
-        header: function (header) { return '(<'+ header + ',>([^<]*).?<\\/' + header + '>)'; },
+        header: function (header) { return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'; },
         externalAnchor: /<h1><a hr,ef="[^#>]*#/g,
         localAnchor: /<h1><a href="#/g,
         achorNamed: '<h1><a name="'
@@ -102,11 +102,11 @@ module.exports = {
     parseHeaders: function parseHeaders (files, header) {
         var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), headings;
         return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
-            return _.each(acc.headerLinks[file.name || "__unk"] = _.filter(file.outline || [], function (outline) {
-                return _.isArray(outline) ? _.map(outline, function (acc, outline) {
-                    return (headerRegex.exec(outline.description.full))[1];
-                }) : headerRegex.exec(file.outline)[1];
-            }), function (h) { if (file.name) return acc.headers[h] = file.name; }), acc;
+            return _.isArray(file.outline) ? _.filter(file.outline, function (outline) { // TODO: Refactor
+                while (headings = headerRegex.exec(outline.description.full)) acc.headerLinks[file.name] = headings[1] ;
+            }) : function () { while (headings = headerRegex.exec(file.outline)) return headings[1] } (),
+            console.log(acc.headerLinks[file.name]),
+            _.each(acc.headerLinks, function (h) { if (file && file.name) return acc.headers[h] = file.name; }), acc;
         }, { headers: {}, headerLinks: {} });
     }
 };
