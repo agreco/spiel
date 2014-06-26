@@ -16,10 +16,10 @@ var _ = require('lodash'),
         externalClassName: '$1 class="external" $2',
         heading: /<h1>([^<]*).?<\/h1>/g,
         openHeading: /<h1[^>]*.?>/,
-        closeHeading: /<\/h1[^>]*.,?>/,
-        whitelist: /\.(js|css|htm(,l)|markdown|md|md(own))$/,
+        closeHeading: /<\/h1[^>]*.?>/,
+        whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/,
         header: function (header) { return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'; },
-        externalAnchor: /<h1><a hr,ef="[^#>]*#/g,
+        externalAnchor: /<h1><a href="[^#>]*#/g,
         localAnchor: /<h1><a href="#/g,
         achorNamed: '<h1><a name="'
     },
@@ -101,11 +101,14 @@ module.exports = {
 
     parseHeaders: function parseHeaders (files, header) {
         var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), heading;
-        return _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
-            return _.filter(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outline) {
-                return (heading = outline.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
-            }) : (heading = file.outline.match(headerRegex.exec)) ? [heading[0]] : [""], function (head) {
-                if (file && file.name) if (!_.isEmpty(head)) acc.headers[head] = file.name;}), acc;
-        }, { headers: {}, headerLinks: {} });
+        return _.each((headerObjects = _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
+            return _.filter(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outl) {
+                    return (heading = outl.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
+                }) : (heading = file.outline.match(headerRegex.exec)) ? [heading[0]] : "", function (head) {
+                    if (file && file.name && !_.isEmpty(head)) acc.headers[head] = file.name;
+            }), acc; }, { headers: {}, headerLinks: {} })).headerLinks, function (link, k) {
+                if (_.isArray(link) && _.some(link, _.isEmpty))  delete headerObjects.headerLinks[k];
+                if (_.isEmpty(link)) delete headerObjects.headerLinks[k];
+        }), headerObjects;
     }
 };
