@@ -43,6 +43,9 @@ var _ = require('lodash'),
         },
         linkedHeader: function (header, text) {
             return "<h1><a href="+ header + "#" + text +">" + text + "</a></h1>";
+        },
+        indexList: function (list) {
+            return _.isUndefined(list) || _.isEmpty(list) ? '' : '<h1>Index</h1>\n<div id="index">\n'+list+'\n</div>';
         }
     };
 
@@ -111,4 +114,19 @@ module.exports = {
                 if (_.isEmpty(link)) delete headerObjects.headerLinks[k];
         }), headerObjects;
     }
+
+    /*indexLinker: function indexLinker (headings, outDir) {
+        return _.reduce(_.keys(headings = headings || []), function (acc, heading) {
+            return acc[heading.replace(regex.heading, '$1')] = headings[heading], acc;
+        }, {}).sort(function lowerCaseSort (a, b) {
+            return (!_.isString(a) || !_.isString(b)) ? 0 : a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+        }).map(function (keyword) {
+            var letter = keyword.toLocaleUpperCase().substring(0,1),
+                h = templates.headers(outDir ? clonedHeaders[keyword] : '', keyword);
+            !_.isUndefined(keywordLetters[letter]) ? (keywordLetters[letter]).push(h) : keywordLetters[letter] = [h];
+        }),
+        _.map(_.keys(keywordLetters), function (letter) {
+            return '<h2>' + letter + '</h2>' + '\n<ul>\n' + (keywordLetters[letter]).join("\n") + '\n</ul>';
+        }).join("\n");
+    }*/
 };
