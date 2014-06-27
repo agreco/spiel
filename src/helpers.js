@@ -38,7 +38,7 @@ var _ = require('lodash'),
                 '</div>\n'
             ].join('');
         },
-        headers: function (clonedHeader, keyword) {
+        li: function (clonedHeader, keyword) {
             return "<li><a href="+ clonedHeader + "#" + keyword +">" + keyword + "</a></li>";
         },
         linkedHeader: function (header, text) {
@@ -113,20 +113,18 @@ module.exports = {
                 if (_.isArray(link) && _.some(link, _.isEmpty))  delete headerObjects.headerLinks[k];
                 if (_.isEmpty(link)) delete headerObjects.headerLinks[k];
         }), headerObjects;
-    }
+    },
 
-    /*indexLinker: function indexLinker (headings, outDir) {
-        return _.reduce(_.keys(headings = headings || []), function (acc, heading) {
-            return acc[heading.replace(regex.heading, '$1')] = headings[heading], acc;
-        }, {}).sort(function lowerCaseSort (a, b) {
-            return (!_.isString(a) || !_.isString(b)) ? 0 : a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-        }).map(function (keyword) {
-            var letter = keyword.toLocaleUpperCase().substring(0,1),
-                h = templates.headers(outDir ? clonedHeaders[keyword] : '', keyword);
-            !_.isUndefined(keywordLetters[letter]) ? (keywordLetters[letter]).push(h) : keywordLetters[letter] = [h];
-        }),
-        _.map(_.keys(keywordLetters), function (letter) {
-            return '<h2>' + letter + '</h2>' + '\n<ul>\n' + (keywordLetters[letter]).join("\n") + '\n</ul>';
-        }).join("\n");
-    }*/
+    indexLinker: function indexLinker (headings, outDir) {
+        return headings = headings || {}, templates.indexList(_.map(_.reduce(_.keys(headings).sort(function (a, b) {
+                return (!_.isString(a) || !_.isString(b)) ? 0 :
+                    a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+                }), function (acc, heading) {
+                    var uri = headings[heading], hash = heading.replace(regex.heading, '$1'),
+                        letter = hash.toLocaleUpperCase().substring(0,1), li = templates.li(outDir ? uri : '', hash);
+                    return !_.isUndefined(acc[letter]) ? (acc[letter]).push(li) : acc[letter] = [li], acc;
+            }, {}), function (letter, key) {
+                return '<h2>' + key + '</h2>' + '\n<ul>\n' + letter.join("\n") + '\n</ul>';
+        }).join("\n"));
+    }
 };

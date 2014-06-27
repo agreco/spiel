@@ -15,11 +15,10 @@ describe('.indexLinker()', function () {
         return expect(helpers.indexLinker()).to.be.empty;
     });
 
-    /*it('should return a string of html containing a list of header links', function () {
-        var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources/'))),
+    it('should return a string of html containing a list of header links', function () {
+        var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./'))),
             headersObj = helpers.parseHeaders(files, 'h1');
-            console.log(helpers.indexLinker(headersObj.headers, './test/resources'));
-            generatedContent = helpers.indexLinker(headersObj.headers, './test/resources');
+            generatedContent = helpers.indexLinker(headersObj.headers, './');
         return expect(generatedContent).to.equal(expectedContent);
-    });*/
+    });
 });
