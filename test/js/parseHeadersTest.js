@@ -10,7 +10,7 @@ var path = require('path'),
 describe('.parseHeaders()', function () {
 
     it('should return an object with empty array properties if the first argument [files] is missing', function () {
-        return assert.isObject(headersObj),
+        return assert.isObject(helpers.parseHeaders()),
                expect(helpers.parseHeaders().headers).to.not.be.undefined,
                expect(helpers.parseHeaders().headerLinks).to.not.be.undefined,
                expect(helpers.parseHeaders().headers).to.be.empty,
