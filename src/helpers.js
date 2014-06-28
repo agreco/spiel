@@ -10,9 +10,9 @@ var _ = require('lodash'),
 
     regex = { // Move to config
         ignores: /^(node_modules)|\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
-        externalLink: /(\<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
+        externalLink: /(<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
         js: /\.(js)$/,
-        markdown: /\.(markdown|md|md(own))$/,
+        md: /\.(markdown|md|md(own))$/,
         externalClassName: '$1 class="external" $2',
         heading: /<h1>([^<]*).?<\/h1>/g,
         openHeading: /<h1[^>]*.?>/,
@@ -38,14 +38,18 @@ var _ = require('lodash'),
                 '</div>\n'
             ].join('');
         },
-        li: function (clonedHeader, keyword) {
-            return "<li><a href="+ clonedHeader + "#" + keyword +">" + keyword + "</a></li>";
-        },
         linkedHeader: function (header, text) {
-            return "<h1><a href="+ header + "#" + text +">" + text + "</a></h1>";
+            return '<h1><a href="'+ header + '#' + text +'">' + text + '</a></h1>';
         },
         indexList: function (list) {
             return _.isUndefined(list) || _.isEmpty(list) ? '' : '<h1>Index</h1>\n<div id="index">\n'+list+'\n</div>';
+        },
+        indexLi: function (clonedHeader, keyword) {
+            return '<li><a href="'+ clonedHeader + '#' + keyword +'">' + keyword + '</a></li>';
+        },
+        indexUl: function (letter, key) {
+            return (_.isUndefined(key) && _.isUndefined(letter)) || !_.isArray(letter) && _.isEmpty(letter) ? '' :
+                '<h2>' + key + '</h2>' + '\n<ul>\n' + letter.join("\n") + '\n</ul>';
         }
     };
 
@@ -103,11 +107,12 @@ module.exports = {
     },
 
     parseHeaders: function parseHeaders (files, header) {
-        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), heading;
+        var headerRegex = new RegExp(regex.header(header || 'h1'), 'g'), heading, headerObjects;
         return _.each((headerObjects = _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
             return _.filter(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outl) {
+                    // TODO: Test full object (outl) property access
                     return (heading = outl.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
-                }) : (heading = file.outline.match(headerRegex.exec)) ? [heading[0]] : "", function (head) {
+                }) : (heading = file.outline.match(headerRegex)) ? heading : "", function (head) {
                     if (file && file.name && !_.isEmpty(head)) acc.headers[head] = file.name;
             }), acc; }, { headers: {}, headerLinks: {} })).headerLinks, function (link, k) {
                 if (_.isArray(link) && _.some(link, _.isEmpty))  delete headerObjects.headerLinks[k];
@@ -117,14 +122,11 @@ module.exports = {
 
     indexLinker: function indexLinker (headings, outDir) {
         return headings = headings || {}, templates.indexList(_.map(_.reduce(_.keys(headings).sort(function (a, b) {
-                return (!_.isString(a) || !_.isString(b)) ? 0 :
-                    a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
-                }), function (acc, heading) {
-                    var uri = headings[heading], hash = heading.replace(regex.heading, '$1'),
-                        letter = hash.toLocaleUpperCase().substring(0,1), li = templates.li(outDir ? uri : '', hash);
-                    return !_.isUndefined(acc[letter]) ? (acc[letter]).push(li) : acc[letter] = [li], acc;
-            }, {}), function (letter, key) {
-                return '<h2>' + key + '</h2>' + '\n<ul>\n' + letter.join("\n") + '\n</ul>';
-        }).join("\n"));
+            return (!_.isString(a) || !_.isString(b)) ? 0 : a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase());
+        }), function (acc, heading) {
+            var hash = heading.replace(regex.heading, '$1'), letter = hash.toLocaleUpperCase().substring(0,1),
+                li = templates.indexLi(outDir ? headings[heading] : '', hash);
+            return !_.isUndefined(acc[letter]) ? (acc[letter]).push(li) : acc[letter] = [li], acc;
+        }, {}), templates.indexUl).join("\n"));
     }
 };
