@@ -1,5 +1,4 @@
 var _ = require('lodash'),
-    defaultTemplatePath = '../template/default',
     dox = require('dox'),
     doxComments = dox.parseComments, // TODO: Investigate esprima
     fs = require('fs'),
@@ -8,23 +7,29 @@ var _ = require('lodash'),
     path = require('path'),
     rootPath = '',
 
-    regex = { // Move to config
+    regex = { // TODO: Move to config
         ignores: /^(node_modules)|\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
-        externalLink: /(<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
+        extlLink: /(<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
         js: /\.(js)$/,
         md: /\.(markdown|md|md(own))$/,
-        externalClassName: '$1 class="external" $2',
+        extCl: '$1 class="external" $2',
         heading: /<h1>([^<]*).?<\/h1>/g,
         openHeading: /<h1[^>]*.?>/,
         closeHeading: /<\/h1[^>]*.?>/,
         whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/,
         header: function (header) { return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'; },
-        externalAnchor: /<h1><a href="[^#>]*#/g,
+        headings: function (list) {
+            return list && _.isArray(list) && list.length ? new RegExp(regex.openHeading.source + '(' +
+               (_.map(list.sort().reverse(), function (kw) { return kw.replace(regex.heading, '$1'); })).join("|") +
+            ')' + regex.closeHeading.source, 'g') : [];
+        },
+        extAnchor: /<h1><a href="[^#>]*#/g,
         localAnchor: /<h1><a href="#/g,
         achorNamed: '<h1><a name="'
     },
 
-    templates = { // Move to jade
+    templates = { // TODO: Move to jade
+        defaultTemplatePath: '../template/default',
         jsDoc: function (name, tags, outline) {
             return [
                 '<div class="api_snippet">\n',
@@ -54,6 +59,7 @@ var _ = require('lodash'),
     };
 
 module.exports = {
+
     getOptions: function getOptions () {
         return nopt({ root: path, output: path, specs: path, src: path, template: path },
             {r: ["--root"], o: ["--output"], sp: ["--specs"], sr: ["--src"], t: ["--template"] }, process.argv);
@@ -126,7 +132,22 @@ module.exports = {
         }), function (acc, heading) {
             var hash = heading.replace(regex.heading, '$1'), letter = hash.toLocaleUpperCase().substring(0,1),
                 li = templates.indexLi(outDir ? headings[heading] : '', hash);
-            return !_.isUndefined(acc[letter]) ? (acc[letter]).push(li) : acc[letter] = [li], acc;
+            return acc[letter] ? (acc[letter]).push(li) : acc[letter] = [li], acc;
         }, {}), templates.indexUl).join("\n"));
+    },
+
+    fileLinker: function fileLinker (fileObjects, headers, output) { // TODO: Refactor to a recursive implementation
+        return headers = _.partialRight(function (desc, headers, output) {
+            return desc ? desc.replace(regex.extlLink, regex.extCl)
+                .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
+                return templates.linkedHeader(output ? headers[header] : '', match);
+            }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed) : '';
+        }, headers, output), _.filter(_.isArray(fileObjects) ? fileObjects : [], function (obj) {
+            return obj ? _.isString(obj.outline) ? obj.outline = headers(obj.outline) : _.isArray(obj.outline) ?
+                _.each(obj.outline, function (outline) {
+                    return outline.description && _.isString(outline.description.full) &&
+                        (outline.description.full = headers(outline.description.full));
+            }) : [] : void 0;
+        });
     }
 };
