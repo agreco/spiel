@@ -140,7 +140,7 @@ module.exports = {
         return _.map(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
             if (obj) {
                 if (_.isArray(obj.outline)) {
-                    _.each(obj.outline, function (otl) { this.fileLinker(otl); }, this);
+                    _.each(obj.outline, function (otl) { this.fileLinker(otl, headers, output); }, this);
                 } else if (_.isObject(obj) && !_.isUndefined(obj.description)) {
                     this.fileLinker((obj.description || ''), headers, output);
                 } else if (_.isString(obj) || obj.full) {
