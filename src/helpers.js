@@ -137,7 +137,7 @@ module.exports = {
     },
 
     fileLinker: function fileLinker (fileObj, headers, output) {
-        return _.filter(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
+        return _.each(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
             return obj ? (_.isArray(obj.outline) ?_.each(obj.outline, function (otl) {
                 this.fileLinker(otl, headers, output); }, this) : _.isObject(obj) && !_.isUndefined(obj.description) ?
                     this.fileLinker((obj.description || ''), headers, output) : (obj.outline || obj.full) ?
