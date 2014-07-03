@@ -137,15 +137,15 @@ module.exports = {
     },
 
     fileLinker: function fileLinker (fileObj, headers, output) {
-        return _.map(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
-            return obj ? _.isArray(obj.outline) ?_.each(obj.outline, function (otl) {
+        return _.filter(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
+            return obj ? (_.isArray(obj.outline) ?_.each(obj.outline, function (otl) {
                 this.fileLinker(otl, headers, output); }, this) : _.isObject(obj) && !_.isUndefined(obj.description) ?
                     this.fileLinker((obj.description || ''), headers, output) : (obj.outline || obj.full) ?
                     (fileObj = obj.outline ? 'outline' : obj.full ? 'full' : '',
                     obj[fileObj] = obj[fileObj].replace(regex.extlLink, regex.extCl)
                         .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
                             return templates.linkedHeader(output ? headers[header] : '', match);
-                }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed)) : '' : obj;
+                }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed), obj) : '') : void 0;
         }, this);
     }
 };
