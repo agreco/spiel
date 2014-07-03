@@ -138,20 +138,14 @@ module.exports = {
 
     fileLinker: function fileLinker (fileObj, headers, output) {
         return _.map(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
-            if (obj) {
-                if (_.isArray(obj.outline)) {
-                    _.each(obj.outline, function (otl) { this.fileLinker(otl, headers, output); }, this);
-                } else if (_.isObject(obj) && !_.isUndefined(obj.description)) {
-                    this.fileLinker((obj.description || ''), headers, output);
-                } else if (_.isString(obj) || obj.full) {
-                    obj['full'] = obj['full'].replace(regex.extlLink, regex.extCl);
-                    obj['full'] = obj['full'].replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
-                        return templates.linkedHeader(output ? headers[header] : '', match);
-                    });
-                    obj['full'] = obj['full'].replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed);
-                }
-            }
-            return obj;
+            return obj ? _.isArray(obj.outline) ?_.each(obj.outline, function (otl) {
+                this.fileLinker(otl, headers, output); }, this) : _.isObject(obj) && !_.isUndefined(obj.description) ?
+                    this.fileLinker((obj.description || ''), headers, output) : (obj.outline || obj.full) ?
+                    (fileObj = obj.outline ? 'outline' : obj.full ? 'full' : '',
+                    obj[fileObj] = obj[fileObj].replace(regex.extlLink, regex.extCl)
+                        .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
+                            return templates.linkedHeader(output ? headers[header] : '', match);
+                }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed)) : '' : obj;
         }, this);
     }
 };

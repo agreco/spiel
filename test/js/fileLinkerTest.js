@@ -10,21 +10,20 @@ var _ = require('lodash'),
 
 describe('.fileLinker()', function() {
 
-/*    it('should return an empty string when the first argument is missing', function () {
+    it('should return an empty string when the first argument is missing', function () {
         return expect(helpers.fileLinker()).to.be.empty;
-    });*/
+    });
 
     it('should return a string of html containing a name linked header', function () {
         var nameAnchorHeaderRegex = /<h1[^>]*.?><a[^>]*.?name="[^>]*.?>[^>]*.?<\/a><\/h1>/,
-            files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources'))),
+            files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./'))),
             headersObj = helpers.parseHeaders(files, 'h1');
-            generatedLinkedFiles = helpers.fileLinker(files, headersObj.headers, './test/resources');
 
-        _.each(generatedLinkedFiles, function (file) {
+        _.each(helpers.fileLinker(files, headersObj.headers, './test/resources'), function (file) {
             if (_.isArray(file.outline)) _.each(file.outline, function (outline) {
                 console.log(outline.description.full);
-                // expect(outline.description.full).to.match(nameAnchorHeaderRegex);
-            }); //else if (_.isString(file.outline)) expect(file.outline).to.match(nameAnchorHeaderRegex);
+                expect(outline.description.full).to.match(nameAnchorHeaderRegex);
+            }); else if (_.isString(file.outline)) expect(file.outline).to.match(nameAnchorHeaderRegex);
         });
     });
 });
