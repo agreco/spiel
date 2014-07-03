@@ -12,10 +12,10 @@ describe('.concatPath()', function () {
     });
 
     it('should return a file path with a default delimiter if the second argument is missing', function () {
-        expect(helpers.concatPath('test/resources/Sample.js')).to.eql('test_resources_Sample.js.html');
+        expect(helpers.concatPath('test/resources/sample.js')).to.eql('test_resources_sample.js.html');
     });
 
     it('should join a file path with a delimiter argument', function () {
-        return expect(helpers.concatPath('test/resources/Sample.js', '*')).to.eql('test*resources*Sample.js.html');
+        return expect(helpers.concatPath('test/resources/sample.js', '*')).to.eql('test*resources*sample.js.html');
     });
 });

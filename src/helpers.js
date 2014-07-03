@@ -136,18 +136,22 @@ module.exports = {
         }, {}), templates.indexUl).join("\n"));
     },
 
-    fileLinker: function fileLinker (fileObjects, headers, output) { // TODO: Refactor to a recursive implementation
-        return headers = _.partialRight(function (desc, headers, output) {
-            return desc ? desc.replace(regex.extlLink, regex.extCl)
-                .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
-                return templates.linkedHeader(output ? headers[header] : '', match);
-            }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed) : '';
-        }, headers, output), _.filter(_.isArray(fileObjects) ? fileObjects : [], function (obj) {
-            return obj ? _.isString(obj.outline) ? obj.outline = headers(obj.outline) : _.isArray(obj.outline) ?
-                _.each(obj.outline, function (outline) {
-                    return outline.description && _.isString(outline.description.full) &&
-                        (outline.description.full = headers(outline.description.full));
-            }) : [] : void 0;
-        });
+    fileLinker: function fileLinker (fileObj, headers, output) {
+        return _.map(fileObj ? _.isArray(fileObj) ? fileObj : [fileObj] : [], function (obj) {
+            if (obj) {
+                if (_.isArray(obj.outline)) {
+                    _.each(obj.outline, function (otl) { this.fileLinker(otl); }, this);
+                } else if (_.isObject(obj) && !_.isUndefined(obj.description)) {
+                    this.fileLinker((obj.description || ''), headers, output);
+                } else if (_.isString(obj) || obj.full) {
+                    obj['full'] = obj['full'].replace(regex.extlLink, regex.extCl);
+                    obj['full'] = obj['full'].replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
+                        return templates.linkedHeader(output ? headers[header] : '', match);
+                    });
+                    obj['full'] = obj['full'].replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed);
+                }
+            }
+            return obj;
+        }, this);
     }
 };

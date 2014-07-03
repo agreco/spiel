@@ -29,7 +29,7 @@ describe('.hashDoc()', function () {
   });
 
   it('should create a hash object from a given JS file', function () { //TODO must test for html/css/sass/markdown
-    var jsContents = dox.parseComments(fs.readFileSync(path.resolve('test/resources/Sample.js'), "utf8").toString());
+    var jsContents = dox.parseComments(fs.readFileSync(path.resolve('test/resources/sample.js'), "utf8").toString());
     return _.each(jsContents, function (metaData) {
       jsOutline.push(helpers.hashDoc(metaData, "js"));
     }), expect(jsOutline).to.not.be.empty;
