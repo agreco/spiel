@@ -44,7 +44,7 @@ var _ = require('lodash'),
             ].join('');
         },
         linkedHeader: function (header, text) {
-            return '<h1><a href="'+ header + '#' + text +'">' + text + '</a></h1>';
+            return '<h1><a href="'+ header + '#' + text +'" name="'+ text +'">' + text + '</a></h1>';
         },
         indexList: function (list) {
             return _.isUndefined(list) || _.isEmpty(list) ? '' : '<h1>Index</h1>\n<div id="index">\n'+list+'\n</div>';
@@ -145,7 +145,7 @@ module.exports = {
                     obj[fileObj] = obj[fileObj].replace(regex.extlLink, regex.extCl)
                         .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
                             return templates.linkedHeader(output ? headers[header] : '', match);
-                }).replace(regex[output ? 'extAnchor' : 'localAnchor'], regex.achorNamed), obj) : '') : void 0;
+                }), obj) : '') : void 0; // TODO: Double check the need for replacing anchors with named anchors
         }, this);
     }
 };
