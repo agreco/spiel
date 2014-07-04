@@ -19,15 +19,15 @@ describe('.fileLinker()', function() {
             files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources/'))),
             headersObj = helpers.parseHeaders(files, 'h1');
         return expect(_.reduce(helpers.fileLinker(files, headersObj.headers, './test/resources'), function (acc, file) {
-	        var match;
-	        if (_.isArray(file.outline)) _.each(file.outline, function (outline) {
-		        match = (outline.description && outline.description.full).match(nameAnchorHeaderRegex);
-		        if (match) acc.push(match);
-	        }); else if (_.isString(file.outline)) {
-		        match = (file.outline).match(nameAnchorHeaderRegex);
-		        if (match) acc.push(match);
-	        }
-	        return acc;
+            var match;
+            if (_.isArray(file.outline)) _.each(file.outline, function (outline) {
+                match = (outline.description && outline.description.full).match(nameAnchorHeaderRegex);
+                if (match) acc.push(match);
+            }); else if (_.isString(file.outline)) {
+                match = (file.outline).match(nameAnchorHeaderRegex);
+                if (match) acc.push(match);
+            }
+            return acc;
         }, [])).to.not.be.empty;
     });
 });
