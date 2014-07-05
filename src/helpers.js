@@ -5,58 +5,9 @@ var _ = require('lodash'),
     markdown = require('github-flavored-markdown').parse,
     nopt = require('nopt'),
     path = require('path'),
+    regex = require('./regex.js'),
     rootPath = '',
-
-    regex = { // TODO: Move to config
-        ignores: /^(node_modules)|\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
-        extlLink: /(<a)\s+(href="(?:http[s]?|mailto|ftp))/g,
-        js: /\.(js)$/,
-        md: /\.(markdown|md|md(own))$/,
-        extCl: '$1 class="external" $2',
-        heading: /<h1>([^<]*).?<\/h1>/g,
-        openHeading: /<h1[^>]*.?>/,
-        closeHeading: /<\/h1[^>]*.?>/,
-        whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/,
-        header: function (header) { return '(<'+ header + '>([^<]*).?<\\/' + header + '>)'; },
-        headings: function (list) {
-            return list && _.isArray(list) && list.length ? new RegExp(regex.openHeading.source + '(' +
-               (_.map(list.sort().reverse(), function (kw) { return kw.replace(regex.heading, '$1'); })).join("|") +
-            ')' + regex.closeHeading.source, 'g') : [];
-        },
-        extAnchor: /<h1><a href="[^#>]*#/g,
-        localAnchor: /<h1><a href="#/g,
-        achorNamed: '<h1><a name="'
-    },
-
-    templates = { // TODO: Move to jade
-        defaultTemplatePath: '../template/default',
-        jsDoc: function (name, tags, outline) {
-            return [
-                '<div class="api_snippet">\n',
-                '<div class="jsdoc">\n',
-                    '<h2>'+name+'</h2>\n',
-                    tags+'\n',
-                '</div>\n',
-                '<pre class="prettyprint source-code">\n',
-                    '<code>' + outline.code +'</code>\n',
-                '</pre>\n',
-                '</div>\n'
-            ].join('');
-        },
-        linkedHeader: function (header, text) {
-            return '<h1><a href="'+ header + '#' + text +'" name="'+ text +'">' + text + '</a></h1>';
-        },
-        indexList: function (list) {
-            return _.isUndefined(list) || _.isEmpty(list) ? '' : '<h1>Index</h1>\n<div id="index">\n'+list+'\n</div>';
-        },
-        indexLi: function (clonedHeader, keyword) {
-            return '<li><a href="'+ clonedHeader + '#' + keyword +'">' + keyword + '</a></li>';
-        },
-        indexUl: function (letter, key) {
-            return (_.isUndefined(key) && _.isUndefined(letter)) || !_.isArray(letter) && _.isEmpty(letter) ? '' :
-                '<h2>' + key + '</h2>' + '\n<ul>\n' + letter.join("\n") + '\n</ul>';
-        }
-    };
+    templates = require('./templates.js');
 
 module.exports = {
 
@@ -142,10 +93,20 @@ module.exports = {
                 this.fileLinker(otl, headers, output); }, this) : _.isObject(obj) && !_.isUndefined(obj.description) ?
                     this.fileLinker((obj.description || ''), headers, output) : (obj.outline || obj.full) ?
                     (fileObj = obj.outline ? 'outline' : obj.full ? 'full' : '',
-                    obj[fileObj] = obj[fileObj].replace(regex.extlLink, regex.extCl)
+                    obj[fileObj] = obj[fileObj].replace(regex.extLink, regex.extCl)
                         .replace(_.isEmpty(headers) ? '' : regex.headings(_.keys(headers)), function (header, match) {
                             return templates.linkedHeader(output ? headers[header] : '', match);
                 }), obj) : '') : void 0; // TODO: Double check the need for replacing anchors with named anchors
         }, this);
+    },
+
+    compileTemplateData: function compileTemplateData (file, template) { // TODO: introduce Jade processing
+        return template = template || '', _.reduce(file && file.outline ? file.outline : [], function (outline) {
+            return template.replace(regex.summary, outline.summary ? outline.summary : '').replace(regex.body,
+                outline.body ? outline.body : ''), _.isArray(outline) ? _.each(outline, function (outl) {
+                    api += outline.code ? outline.code : '';
+                    template.replace(regex.api, outline ? function () { return templates.apiWrapper(api) } : '');
+                }) : void 0;
+        }, '', this);
     }
 };
