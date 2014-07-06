@@ -14,13 +14,10 @@ describe('.compileTemplateData()', function () {
         return expect(_.isString(data)).to.be.true, expect(data).to.be.empty;
     });
 
-
     it('should create the default template from a given document', function () {
-        renderedTemplate = helpers.compileTemplateData({
-            title: path.basename('test/resources/sample.js', '.js'),
-            outline: _.each(dox(fs.readFileSync(path.resolve('test/resources/sample.js'), 'utf8').toString()),
-                function (item) { return helpers.hashDoc(item, "js");
-            })
-        }, fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString());
+        var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources/'))),
+            rendered, template = fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString();
+        _.each(files ? files : [], function (file) { rendered = helpers.compileTemplateData(file, template); });
+        console.log(rendered);
     });
 });

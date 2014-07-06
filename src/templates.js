@@ -18,13 +18,13 @@ module.exports = { // TODO: Move to jade
     jsDoc: function (name, tags, outline) {
         return [
             '<div class="api_snippet">\n',
-            '<div class="jsdoc">\n',
-                '<h2>'+name+'</h2>\n',
-                tags+'\n',
-            '</div>\n',
-            '<pre class="prettyprint source-code">\n',
-                '<code>' + outline.code +'</code>\n',
-            '</pre>\n',
+                '<div class="jsdoc">\n',
+                    '<h2>'+name+'</h2>\n',
+                    tags+'\n',
+                '</div>\n',
+                '<pre class="prettyprint source-code">\n',
+                    '<code>' + outline.code +'</code>\n',
+                '</pre>\n',
             '</div>\n'
         ].join('');
     },
