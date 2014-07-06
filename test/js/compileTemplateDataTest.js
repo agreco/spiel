@@ -18,6 +18,5 @@ describe('.compileTemplateData()', function () {
         var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources/'))),
             rendered, template = fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString();
         _.each(files ? files : [], function (file) { rendered = helpers.compileTemplateData(file, template); });
-        console.log(rendered);
     });
 });
