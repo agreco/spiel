@@ -101,12 +101,11 @@ module.exports = {
     },
 
     compileTemplateData: function compileTemplateData (file, template) { // TODO: introduce Jade processing
-        return template = template || '', _.reduce(file && file.outline ? file.outline : [], function (outline) {
-            return template.replace(regex.summary, outline.summary ? outline.summary : '').replace(regex.body,
-                outline.body ? outline.body : ''), _.isArray(outline) ? _.each(outline, function (outl) {
-                    api += outline.code ? outline.code : '';
-                    template.replace(regex.api, outline ? function () { return templates.apiWrapper(api) } : '');
-                }) : void 0;
-        }, '', this);
+        return _.reduce(file && file.outline ? file.outline : [], function (acc, outl) {
+            return outl ? (acc.replace(regex.summary, outl.summary ? outl.summary : '')
+                .replace(regex.body, outl.body ? outl.body : ''), acc.replace(regex.api, function () {
+                    return templates.apiWrapper(_.reduce(_.isArray(outl) ? outl : [], function (accm, desc) {
+                        return accm += desc.code ? desc.code : '', accm; }, '')); }), acc) : '';
+        }, template = template || '', this);
     }
 };
