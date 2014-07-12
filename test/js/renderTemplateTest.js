@@ -9,17 +9,17 @@ var _ = require('lodash'),
     path = require('path'),
     should = chai.should();
 
-describe('.compileTemplateData()', function () {
+describe('.renderTemplate()', function () {
 
     it('should return an empty string when [files] arguments is missing', function () {
-        var data = helpers.compileTemplateData();
+        var data = helpers.renderTemplate();
         return expect(_.isString(data)).to.be.true, expect(data).to.be.empty;
     });
 
-    it('should create the default template from a given document', function () {
+    it('should render default template from a given document', function () {
         var files = helpers.buildFileObjects(helpers.cleanseFiles(helpers.getFiles('./test/resources/'))),
             renderedTmpl, template = fs.readFileSync(path.resolve('template/default/index.html'), "utf8").toString();
-        _.each(files ? files : [], function (file) { renderedTmpl = helpers.compileTemplateData(file, template); });
+        _.each(files ? files : [], function (file) { renderedTmpl = helpers.renderTemplate(file, template); });
 
         return expect(renderedTmpl).to.not.be.empty, jsdom.env({
             html: renderedTmpl,

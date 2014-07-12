@@ -4,7 +4,7 @@ module.exports = { // TODO: Move to jade
     apiWrapper: function (api) {
         return '<div id="api">' + api + "</div>";
     },
-    defaultTemplatePath: '../template/default',
+    path: '../template/default',
     indexLi: function (clonedHeader, keyword) {
         return '<li><a href="'+ clonedHeader + '#' + keyword +'">' + keyword + '</a></li>';
     },

@@ -100,12 +100,28 @@ module.exports = {
         }, this);
     },
 
-    compileTemplateData: function compileTemplateData (file, template) { // TODO: introduce Jade processing
+    renderTemplate: function renderTemplate (file, template) { // TODO: introduce Jade processing
         return file && file.outline && file.outline.length && template  && _.isString(template) ?
             template.replace(regex.summary, file.outline[0].summary ? file.outline[0].summary : '')
                 .replace(regex.body, file.outline[0].body ? file.outline[0].body : '').replace(regex.api, function () {
                     return templates.apiWrapper(_.reduce(_.isArray(file.outline) ? file.outline : [],
                         function (accm, desc) { return accm += desc.code ? desc.code : '', accm; }, ''));
                 }) : '';
+    },
+
+    importTemplateResources: function importTemplateResources (opts, res) {
+        var encoding  = 'utf8', resOut = opts.output.concat('/' + res);
+        return !fs.existsSync(resOut) ? fs.mkdirSync(resOut, 511) : void 0, opts = opts || {}, res = res || '',
+            _.each(_.filter(this.getFiles(path.resolve(__dirname, opts.template ? templates.path :
+                opts.template) + "/" + res), function(file) { return res.match(/(img(s)|image(s))/) ?
+                    (res = 'png|gif|jpeg', encoding = 'binary') : void 0, file.match(".(" + res + ")$");
+            }), function(file) {
+                return fs.readFile(file, function(err, data) {
+                    if (err) throw err;
+                    return fs.writeFile(resOut.concat('/' + path.basename(file)), data, encoding, function(err) {
+                        if (err) throw err;
+                });
+            });
+        }, this);
     }
 };
