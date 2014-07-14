@@ -110,8 +110,8 @@ module.exports = {
     },
 
     importTemplateResources: function importTemplateResources (opts, res) {
-        var encoding  = 'utf8', resOut = opts.output.concat('/' + res);
-        return !fs.existsSync(resOut) ? fs.mkdirSync(resOut, 511) : void 0, opts = opts || {}, res = res || '',
+        var encoding  = 'utf8', resOut = (opts = opts || {}).output.concat('/' + res ? res : '');
+        return !fs.existsSync(resOut) ? fs.mkdirSync(resOut, 511) : void 0, res = res || '',
             _.each(_.filter(this.getFiles(path.resolve(__dirname, opts.template ? templates.path :
                 opts.template) + "/" + res), function(file) { return res.match(/(img(s)|image(s))/) ?
                     (res = 'png|gif|jpeg', encoding = 'binary') : void 0, file.match(".(" + res + ")$");
@@ -120,8 +120,8 @@ module.exports = {
                     if (err) throw err;
                     return fs.writeFile(resOut.concat('/' + path.basename(file)), data, encoding, function(err) {
                         if (err) throw err;
+                    });
                 });
-            });
         }, this);
     }
 };
