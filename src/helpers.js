@@ -7,7 +7,7 @@ var _ = require('lodash'),
     path = require('path'),
     regex = require('./regex.js'),
     rootPath = '',
-    templates = require('./templates.js');
+    defaultOut = 'out', templates = require('./templates.js');
 
 module.exports = {
 
@@ -110,17 +110,14 @@ module.exports = {
     },
 
     importTemplateResources: function importTemplateResources (opts, res) {
-        var encoding  = 'utf8', resOut = (opts = opts || {}).output.concat('/' + res ? res : '');
-        return !fs.existsSync(resOut) ? fs.mkdirSync(resOut, 511) : void 0, res = res || '',
-            _.each(_.filter(this.getFiles(path.resolve(__dirname, opts.template ? templates.path :
-                opts.template) + "/" + res), function(file) { return res.match(/(img(s)|image(s))/) ?
-                    (res = 'png|gif|jpeg', encoding = 'binary') : void 0, file.match(".(" + res + ")$");
-            }), function(file) {
-                return fs.readFile(file, function(err, data) {
-                    if (err) throw err;
-                    return fs.writeFile(resOut.concat('/' + path.basename(file)), data, encoding, function(err) {
-                        if (err) throw err;
-                    });
+        var enc = 'utf8', resOut = (opts = opts || { output: defaultOut, template: templates.path })
+            .output.concat('/' + (res = res ? res : templates.resources));
+        return fs.existsSync(resOut) ? void 0 : fs.mkdirSync(resOut),
+            _.each(_.filter(this.getFiles(path.resolve(opts.template) + "/" + res), function (file) {
+                return res.match(regex.imgs) ? (res = regex.imgExt, enc = 'binary') : void 0, file.match(".("+res+")$");
+            }), function (file) {
+                return fs.readFile(file, function (err, data) {
+                    return err ? new Error(err) : fs.writeFile(resOut.concat('/' + path.basename(file)), data, enc);
                 });
         }, this);
     }

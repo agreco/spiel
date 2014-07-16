@@ -17,6 +17,8 @@ module.exports = {
     },
     ignores: /^(node_modules)|\.(git|svn|cvs|hg|bzr|idea|nbprojects|DS_Store|yml|iml)$/,
     js: /\.(js)$/,
+    imgs: /(img(s)|image(s))/,
+    imgExt: 'png|gif|jpeg',
     localAnchor: /<h1><a href="#/g,
     md: /\.(markdown|md|md(own))$/,
     openHeading: /<h1[^>]*.?>/,

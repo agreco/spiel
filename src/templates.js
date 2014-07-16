@@ -4,7 +4,6 @@ module.exports = { // TODO: Move to jade
     apiWrapper: function (api) {
         return '<div id="api">' + api + "</div>";
     },
-    path: '../template/default',
     indexLi: function (clonedHeader, keyword) {
         return '<li><a href="'+ clonedHeader + '#' + keyword +'">' + keyword + '</a></li>';
     },
@@ -30,5 +29,7 @@ module.exports = { // TODO: Move to jade
     },
     linkedHeader: function (header, text) {
         return '<h1><a href="'+ header + '#' + text +'" name="'+ text +'">' + text + '</a></h1>';
-    }
+    },
+    path: './template/default',
+    resources: 'resources'
 };
