@@ -13,7 +13,7 @@ module.exports = {
 
     getOptions: function getOptions () {
         return nopt({ root: path, output: path, specs: path, src: path, template: path },
-            {r: ["--root"], o: ["--output"], sp: ["--specs"], sr: ["--src"], t: ["--template"] }, process.argv);
+            {r: ['--root'], o: ['--output'], sp: ['--specs'], sr: ['--src'], t: ['--template'] }, process.argv);
     },
 
     ignored: function ignored (pathName) {
@@ -29,9 +29,9 @@ module.exports = {
 
     concatPath: function concatPath (file, delimiter) {
         // TODO: Add support for win paths. ATM only unix is supported & Investigate a string replacement method
-        return (file = (_.isString(file) ? (file.match(rootPath) ? file.replace(rootPath, "") : file) : void 0)) ?
-            (_.filter(_.map(file.split("/"), function (a) { return a.replace(/^\.+/g, ""); }),
-                function (b) { return b !== ""; })).join(_.isString(delimiter) ? delimiter : "_") + ".html" : "";
+        return (file = (_.isString(file) ? (file.match(rootPath) ? file.replace(rootPath, '') : file) : void 0)) ?
+            (_.filter(_.map(file.split('/'), function (a) { return a.replace(/^\.+/g, ''); }),
+                function (b) { return b !== ''; })).join(_.isString(delimiter) ? delimiter : '_') + '.html' : '';
     },
 
     cleanseFiles: function cleanseFiles (files) {
@@ -42,23 +42,23 @@ module.exports = {
 
     hashDoc: function hashDoc (outline, fileType) { // TODO: Extend to html/css and move to config.
         return _.isObject(outline) && !_.isEmpty(outline) && fileType === 'js' ? {
-            tags : outline.tags || "",
-            isPrivate : outline.isPrivate || "",
-            ignore : outline.ignore || "",
-            code : outline.code || "",
-            description : outline.description || "",
-            summary : outline.description.summary || "",
-            body : outline.description.body || "",
-            ctx : outline.ctx || ""
+            tags : outline.tags || '',
+            isPrivate : outline.isPrivate || '',
+            ignore : outline.ignore || '',
+            code : outline.code || '',
+            description : outline.description || '',
+            summary : outline.description.summary || '',
+            body : outline.description.body || '',
+            ctx : outline.ctx || ''
         } : {};
     },
 
     buildFileObjects: function buildFileObjects (files) {
         return !_.isArray(files) ? [] : _.reduce(files, function (acc, file) {
-            var buldflobj = this, obj = {}, content = fs.readFileSync(file, "utf8").toString();
+            var buldflobj = this, obj = {}, content = fs.readFileSync(file, 'utf8').toString();
             try { obj.outline = file.match(regex.js) ? _.map(doxComments(content), function (metaData) {
-                return buldflobj.hashDoc(metaData, "js"); }) : file.match(regex.md) ? markdown(content) : "";
-            } catch (e) { obj.outline = ""; } // Boo, hiss, hiss, boo.
+                return buldflobj.hashDoc(metaData, 'js'); }) : file.match(regex.md) ? markdown(content) : '';
+            } catch (e) { obj.outline = ''; } // Boo, hiss, hiss, boo.
             return obj.path = file, obj.name = buldflobj.concatPath(file, '.'), acc.push(obj), acc;
         }, [], this);
     },
@@ -68,8 +68,8 @@ module.exports = {
         return _.each((headerObjects = _.reduce(_.isArray(files) && files.length ? files : [], function (acc, file) {
             return _.filter(acc.headerLinks[file.name] = _.isArray(file.outline) ? _.map(file.outline, function (outl) {
                     // TODO: Test full object (outl) property access
-                    return (heading = outl.description.full.match(headerRegex)) ? heading[0] : ""; // Urgh!
-                }) : (heading = file.outline.match(headerRegex)) ? heading : "", function (head) {
+                    return (heading = outl.description.full.match(headerRegex)) ? heading[0] : ''; // Urgh!
+                }) : (heading = file.outline.match(headerRegex)) ? heading : '', function (head) {
                     if (file && file.name && !_.isEmpty(head)) acc.headers[head] = file.name;
             }), acc; }, { headers: {}, headerLinks: {} })).headerLinks, function (link, k) {
                 if (_.isArray(link) && _.some(link, _.isEmpty))  delete headerObjects.headerLinks[k];
@@ -84,7 +84,7 @@ module.exports = {
             var hash = heading.replace(regex.heading, '$1'), letter = hash.toLocaleUpperCase().substring(0,1),
                 li = templates.indexLi(outDir ? headings[heading] : '', hash);
             return acc[letter] ? (acc[letter]).push(li) : acc[letter] = [li], acc;
-        }, {}), templates.indexUl).join("\n"));
+        }, {}), templates.indexUl).join('\n'));
     },
 
     fileLinker: function fileLinker (fileObj, headers, output) {
@@ -111,10 +111,10 @@ module.exports = {
 
     importTemplateResources: function importTemplateResources (opts, res) {
         var enc = 'utf8', resOut = (opts = opts || { output: defaultOut, template: templates.path })
-            .output.concat('/' + (res = res ? res : templates.resources));
-        return fs.existsSync(resOut) ? void 0 : fs.mkdirSync(resOut),
-            _.each(_.filter(this.getFiles(path.resolve(opts.template) + "/" + res), function (file) {
-                return res.match(regex.imgs) ? (res = regex.imgExt, enc = 'binary') : void 0, file.match(".("+res+")$");
+            .output.concat('/' + (res = res ? res : '' ));
+        return fs.existsSync(opts.template) ? void 0 : fs.mkdirSync(opts.template),
+            _.each(_.filter(this.getFiles(path.resolve(opts.template)), function (f) {
+                return f.match(regex.imgs) ? (res = regex.imgExt, enc = 'binary') : void 0, f.match('.('+res+')$');
             }), function (file) {
                 return fs.readFile(file, function (err, data) {
                     return err ? new Error(err) : fs.writeFile(resOut.concat('/' + path.basename(file)), data, enc);
