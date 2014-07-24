@@ -1,13 +1,15 @@
 var _ = require('lodash'),
+    defaultOut = 'out',
     dox = require('dox'),
     doxComments = dox.parseComments, // TODO: Investigate esprima
     fs = require('fs'),
     markdown = require('github-flavored-markdown').parse,
+    mkdirp = require('mkdirp'),
     nopt = require('nopt'),
     path = require('path'),
     regex = require('./regex.js'),
     rootPath = '',
-    defaultOut = 'out', templates = require('./templates.js');
+    templates = require('./templates.js');
 
 module.exports = {
 
@@ -109,16 +111,15 @@ module.exports = {
                 }) : '';
     },
 
-    importTemplateResources: function importTemplateResources (opts, res) {
-        var enc = 'utf8', resOut = (opts = opts || { output: defaultOut, template: templates.path })
-            .output.concat('/' + (res = res ? res : '' ));
-        return fs.existsSync(opts.template) ? void 0 : fs.mkdirSync(opts.template),
-            _.each(_.filter(this.getFiles(path.resolve(opts.template)), function (f) {
-                return f.match(regex.imgs) ? (res = regex.imgExt, enc = 'binary') : void 0, f.match('.('+res+')$');
-            }), function (file) {
-                return fs.readFile(file, function (err, data) {
-                    return err ? new Error(err) : fs.writeFile(resOut.concat('/' + path.basename(file)), data, enc);
+    importTemplateResources: function importTemplateResources (opts, res) { // TODO: Use wrtieStreams, remove mkdirp!
+        return res ? (fs.existsSync((opts = opts || { out: defaultOut, tmpl: templates.path }).out) ? void 0 :
+            mkdirp.sync(opts.out), _.each(_.filter(this.getFiles(path.resolve(opts.tmpl)), function (file) {
+                return file.match(regex.res);
+            }), function (f) {
+               return fs.readFile(f, function (err, data) {
+                    return err ? err : fs.writeFile(opts.out.concat('/' + (res))
+                        .concat('/' + path.basename(f)), data, { encoding: (f.match(regex.imgs) ? 'binary' : 'utf8') });
                 });
-        }, this);
+        }, this)) : [];
     }
 };

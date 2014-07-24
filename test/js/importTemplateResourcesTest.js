@@ -11,9 +11,8 @@ var _ = require('lodash'),
 
 describe('importTemplateResources', function () {
 
-    it('should return an empty value if [opts] argument is missing', function () {
-        helpers.importTemplateResources();
-        // return expect(helpers.importTemplateResources()).to.be.empty;
+    it('should return an empty array if [res] argument is missing', function () {
+        return expect(helpers.importTemplateResources()).to.be.empty;
     });
 
     /*it('should import css template resources into the output directory', function (done) {

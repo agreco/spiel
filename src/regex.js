@@ -22,6 +22,7 @@ module.exports = {
     localAnchor: /<h1><a href="#/g,
     md: /\.(markdown|md|md(own))$/,
     openHeading: /<h1[^>]*.?>/,
+    res: /\.(js|css|png|gif|jpeg)$/,
     summary: /\$summary/g,
     whitelist: /\.(js|css|htm(l)|markdown|md|md(own))$/
 };
