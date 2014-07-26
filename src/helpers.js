@@ -1,5 +1,5 @@
 var _ = require('lodash'),
-    defaultOut = 'out',
+    defaultOut = 'out/resources',
     dox = require('dox'),
     doxComments = dox.parseComments, // TODO: Investigate esprima
     fs = require('fs'),
@@ -111,15 +111,15 @@ module.exports = {
                 }) : '';
     },
 
-    importTemplateResources: function importTemplateResources (opts, res) { // TODO: Use wrtieStreams, remove mkdirp!
-        return res ? (fs.existsSync((opts = opts || { out: defaultOut, tmpl: templates.path }).out) ? void 0 :
-            mkdirp.sync(opts.out), _.each(_.filter(this.getFiles(path.resolve(opts.tmpl)), function (file) {
-                return file.match(regex.res);
-            }), function (f) {
-               return fs.readFile(f, function (err, data) {
-                    return err ? err : fs.writeFile(opts.out.concat('/' + (res))
-                        .concat('/' + path.basename(f)), data, { encoding: (f.match(regex.imgs) ? 'binary' : 'utf8') });
+    importTemplateResources: function importTemplateResources (opts) { // TODO: Use wrtieStreams, remove mkdirp!
+        //console.dir(opts = opts && opts.out ? opts : { out: defaultOut });
+        return opts = opts && opts.out ? opts : { out: defaultOut }, fs.existsSync(opts.out) ? void 0 :
+            mkdirp.sync(opts.out),  _.each(_.filter(this.getFiles(path.resolve(opts && opts.tmpl ? opts.tmpl :
+                templates.path), _.bind(regex.res.test, regex.res)), function (f) {
+                    return fs.readFile(f, function (err, data) {
+                        return err ? err : fs.writeFile(opts.out.concat('/' + path.basename(f)), data, {
+                            encoding: (f.match(regex.imgs) ? 'binary' : 'utf8') }, function (er) { if (er) throw er; });
                 });
-        }, this)) : [];
+        }, this));
     }
 };

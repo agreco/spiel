@@ -4,6 +4,7 @@ var _ = require('lodash'),
     fs = require('fs'),
     dox = require('dox'),
     helpers = require('../../src/helpers'),
+    regex = require('../../src/regex'),
     chai = require('chai'),
     expect = chai.expect,
     should = chai.should(),
@@ -11,18 +12,19 @@ var _ = require('lodash'),
 
 describe('importTemplateResources', function () {
 
-    it('should return an empty array if [res] argument is missing', function () {
+    it('should return an empty array if [opts] argument is missing', function () {
         return expect(helpers.importTemplateResources()).to.be.empty;
     });
 
-    /*it('should import css template resources into the output directory', function (done) {
-        var outputDir = 'test/resources', cssDir = outputDir + '/css';
-        return helpers.importTemplateResources({output: outputDir}, 'css'), expect(fs.existsSync(cssDir)).to.be.true,
-            _.each(helpers.getFiles(cssDir), function (file) { expect(path.extname(file)).to.equal('.css'); }),
-            childProcess.exec("rm -r " + cssDir), done();
+    it('should import default template resources into a given output directory', function () {
+        var out = 'test/resources';
+        return helpers.importTemplateResources({ out: out }), expect(fs.existsSync(out)).to.be.true,
+            _.each(helpers.getFiles(out), function (file) {
+                expect(file.match(regex.res)).to.be.true;
+            }), childProcess.exec("rm -r" + out);
     });
 
-    it('should import js template resources into the output directory', function (done) {
+    /*it('should import js template resources into the output directory', function (done) {
         var outputDir = 'test/resources', jsDir = outputDir + '/js';
         return helpers.importTemplateResources({output: outputDir}, 'js'), expect(fs.existsSync(jsDir)).to.be.true,
             _.each(helpers.getFiles(jsDir), function (file) { expect(path.extname(file)).to.equal('.js'); }),
