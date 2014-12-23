@@ -24,7 +24,7 @@ gulp.task('bower', function () {
 });
 
 gulp.task('clean', function() {
-    gulp.src('./build-dev/**/*', { read: false }) .pipe(clean(configs.clean));
+    return gulp.src('./build-dev/**/*', { read: false }) .pipe(gulpClean(configs.clean));
 });
 
 gulp.task('copy', function () {
@@ -34,7 +34,7 @@ gulp.task('copy', function () {
 });
 
 gulp.task('browserify', function () {
-    browserify()
+    gulpBrowserify()
         .require(require.resolve('./src/app/main.js'), { entry: true })
         .bundle({ debug: true }, function (err, bundle) { // Add gulp.watch for errors
             fs.mkdir('./build-dev/app/js/', function (err) {
@@ -47,21 +47,21 @@ gulp.task('browserify', function () {
 });
 
 gulp.task('jade', function () {
-    gulp.src('./src/**/*.jade') .pipe(jade(configs.jade)) .pipe(gulp.dest('./build-dev/'));
+    return gulp.src('./src/**/*.jade') .pipe(gulpJade(configs.jade)) .pipe(gulp.dest('./build-dev/'));
 });
 
 gulp.task('lint', function() {
-    gulp.src('./src/app/app.js') .pipe(jshint()) .pipe(jshint.reporter('default'));
+    return gulp.src('./src/app/app.js') .pipe(gulpJshint()) .pipe(gulpJshint.reporter('default'));
 });
 
 gulp.task('sprites', function () {
-    var spriteData = gulp.src('./src/sprites/**/*') .pipe(smith(configs.spritesmith));
+    var spriteData = gulp.src('./src/sprites/**/*') .pipe(gulpSmith(configs.spritesmith));
     spriteData.img.pipe(gulp.dest('./build-dev/images/'));
     spriteData.css.pipe(gulp.dest('./build-dev/styles/lib/sprites/'));
 });
 
 gulp.task('less', function () {
-    gulp.src('./src/styles/main.less') .pipe(less(configs.less)) .pipe(gulp.dest('./build-dev/styles/'));
+    return gulp.src('./src/styles/main.less') .pipe(gulpLess(configs.less)) .pipe(gulp.dest('./build-dev/styles/'));
 });
 
 gulp.task('express', function () {
@@ -69,15 +69,15 @@ gulp.task('express', function () {
 });
 
 gulp.task('mocha', function () {
-    gulp.src('./test/js/importTemplateResourcesTest.js') .pipe(gulpMocha(configs.mocha));
+    return gulp.src('./test/js/importTemplateResourcesTest.js') .pipe(gulpMocha(configs.mocha));
 });
 
 gulp.task('default', ['mocha']);
 
-/*
-gulp.task('default', ['clean', 'lint', 'requirejs', 'jade', 'sprites', 'less', 'copy', 'serve']);
 
-gulp.task('minify-css', function() {
+//gulp.task('default', ['clean', 'lint', 'browserify', 'jade', 'sprites', 'less', 'copy', 'express']);
+
+/*gulp.task('minify-css', function() {
     gulp.src('./static/css/*.css').pipe(minifyCSS(opts)).pipe(gulp.dest('./dist/'))
 });
 

@@ -1,8 +1,7 @@
-var _ = require('lodash'),
-    defaultOut = 'out/resources',
-    dox = require('dox'),
+var dox = require('dox'),
     doxComments = dox.parseComments, // TODO: Investigate esprima
     fs = require('fs'),
+    _ = require('lodash'),
     markdown = require('github-flavored-markdown').parse,
     mkdirp = require('mkdirp'),
     nopt = require('nopt'),
@@ -12,6 +11,8 @@ var _ = require('lodash'),
     templates = require('./templates.js');
 
 module.exports = {
+
+    defaultOut: 'out/resources',
 
     getOptions: function getOptions () {
         return nopt({ root: path, output: path, specs: path, src: path, template: path },
@@ -111,15 +112,17 @@ module.exports = {
                 }) : '';
     },
 
-    importTemplateResources: function importTemplateResources (opts) { // TODO: Use wrtieStreams, remove mkdirp!
-        //console.dir(opts = opts && opts.out ? opts : { out: defaultOut });
-        return opts = opts && opts.out ? opts : { out: defaultOut }, fs.existsSync(opts.out) ? void 0 :
-            mkdirp.sync(opts.out),  _.each(_.filter(this.getFiles(path.resolve(opts && opts.tmpl ? opts.tmpl :
-                templates.path), _.bind(regex.res.test, regex.res)), function (f) {
-                    return fs.readFile(f, function (err, data) {
-                        return err ? err : fs.writeFile(opts.out.concat('/' + path.basename(f)), data, {
-                            encoding: (f.match(regex.imgs) ? 'binary' : 'utf8') }, function (er) { if (er) throw er; });
-                });
+    importTemplateResources: function importTemplateResources (obj) {
+        obj = { out: obj && obj.out ? obj.out : this.defaultOut, tmpl: obj && obj.tmpl ? obj.tmpl : templates.path };
+        fs.existsSync(obj.out) ? void 0 : mkdirp.sync(obj.out); // TODO: Use wrtieStreams, remove mkdirp!
+        _.each(_.filter(this.getFiles(path.resolve(obj.tmpl), _.bind(regex.res.test, regex.res)), function (file) {
+            fs.readFile(file, function (err, data) {
+                if (err) throw err;
+                debugger;
+                fs.writeFile(path.resolve(__dirname, obj.out.concat('/' + path.basename(file))), data, {
+                    encoding: file.match(regex.imgs) ? 'binary' : 'utf8'
+                }, function (er) { if (er) throw er; });
+            });
         }, this));
     }
 };

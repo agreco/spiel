@@ -30,6 +30,5 @@ module.exports = { // TODO: Move to jade
     linkedHeader: function (header, text) {
         return '<h1><a href="'+ header + '#' + text +'" name="'+ text +'">' + text + '</a></h1>';
     },
-    path: './template/default',
-    resources: 'resources'
+    path: './template/default'
 };
