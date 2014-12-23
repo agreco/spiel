@@ -114,14 +114,10 @@ module.exports = {
 
     importTemplateResources: function importTemplateResources (obj) {
         obj = { out: obj && obj.out ? obj.out : this.defaultOut, tmpl: obj && obj.tmpl ? obj.tmpl : templates.path };
-        fs.existsSync(obj.out) ? void 0 : mkdirp.sync(obj.out); // TODO: Use wrtieStreams, remove mkdirp!
+        fs.existsSync(obj.out) ? void 0 : mkdirp.sync(obj.out); // TODO: Use writeStreams, remove mkdirp!
         _.each(_.filter(this.getFiles(path.resolve(obj.tmpl), _.bind(regex.res.test, regex.res)), function (file) {
-            fs.readFile(file, function (err, data) {
-                if (err) throw err;
-                debugger;
-                fs.writeFile(path.resolve(__dirname, obj.out.concat('/' + path.basename(file))), data, {
-                    encoding: file.match(regex.imgs) ? 'binary' : 'utf8'
-                }, function (er) { if (er) throw er; });
+            fs.writeFileSync(path.resolve(process.cwd(), obj.out.concat('/'+path.basename(file))), fs.readFile(file), {
+                encoding: (file.match(regex.imgs) ? 'binary' : 'utf8')
             });
         }, this));
     }

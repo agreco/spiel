@@ -69,7 +69,7 @@ gulp.task('express', function () {
 });
 
 gulp.task('mocha', function () {
-    return gulp.src('./test/js/importTemplateResourcesTest.js') .pipe(gulpMocha(configs.mocha));
+    return gulp.src('./test/js/*.js') .pipe(gulpMocha(configs.mocha));
 });
 
 gulp.task('default', ['mocha']);

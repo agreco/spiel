@@ -12,39 +12,30 @@ var _ = require('lodash'),
 
 describe('importTemplateResources', function () {
 
-    var out, removeRes = function () {
+    var rmDir = function (out) {
         if (out && !_.isEmpty(out)) childProcess.exec("rm -rf " + out);
-        /* if (fs.existsSync(out)) {
-            console.log(out);
-            _.each(fs.readdirSync(out), function(file) {
-                file = out + "/" + file;
-                fs.lstatSync(file).isDirectory() ? removeRes(file) : fs.unlinkSync(file);
-            });
-            fs.rmdirSync(out);
-        }*/
     };
 
-    before(removeRes);
-    afterEach(removeRes);
-
     it('should import default template resources to default output dir when [out] argument is missing', function () {
-        out = helpers.defaultOut;
+        var out = helpers.defaultOut;
         helpers.importTemplateResources();
         expect(fs.existsSync(out)).to.be.true;
         _.each(helpers.getFiles(out), function (file) {
-            expect(file.match(regex.res)).to.be.true;
+            expect(regex.res.test(file)).to.be.true;
         });
+        rmDir('out');
     });
 
-    /*it('should import default template resources into a given output directory', function () {
+    it('should import default template resources into a given output directory', function () {
         _.each(_.range(1, 10), function (out) {
-            out = 'out' + out + '/resources';
-            helpers.importTemplateResources({ out: out });
-            expect(fs.existsSync(out)).to.be.true;
-            _.each(helpers.getFiles(out), function (file) { expect(file.match(regex.res)).to.be.true; });
-            childProcess.exec("rm -r" + out);
+            helpers.importTemplateResources({ out: 'out' + out + '/resources' });
+            expect(fs.existsSync('out' + out + '/resources')).to.be.true;
+            _.each(helpers.getFiles('out' + out + '/resources'), function (file) {
+                expect(regex.res.test(file)).to.be.true;
+            });
+            rmDir('out' + out);
         });
-    });*/
+    });
 
     /*it('should import js template resources into the output directory', function (done) {
         var outputDir = 'test/resources', jsDir = outputDir + '/js';
