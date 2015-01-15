@@ -12,38 +12,42 @@ var _ = require('lodash'),
 
 describe('importTemplateResources', function () {
 
-    var rmDir = function (out) {
-        if (out && !_.isEmpty(out)) childProcess.exec("rm -rf " + out);
-    };
+    beforeEach(function () {
+        helpers.defaultOut = 'test/resources/out';
+    });
+
+    /*afterEach(function () {
+        if (!_.isEmpty(helpers.defaultOut)) childProcess.exec("rm -rf " + helpers.defaultOut);
+    });*/
 
     it('should import default template resources to default output dir when [out] argument is missing', function () {
-        var out = helpers.defaultOut;
         helpers.importTemplateResources();
-        expect(fs.existsSync(out)).to.be.true;
-        _.each(helpers.getFiles(out), function (file) {
+        expect(fs.existsSync(helpers.defaultOut)).to.be.true;
+        _.each(helpers.getFiles(helpers.defaultOut), function (file) {
             expect(regex.res.test(file)).to.be.true;
         });
-        rmDir('out');
     });
 
-    it('should import default template resources into a given output directory', function () {
+    /*it('should import default template resources into a given output directory', function () {
         _.each(_.range(1, 10), function (out) {
-            helpers.importTemplateResources({ out: 'out' + out + '/resources' });
-            expect(fs.existsSync('out' + out + '/resources')).to.be.true;
-            _.each(helpers.getFiles('out' + out + '/resources'), function (file) {
+            helpers.importTemplateResources({ out: helpers.defaultOut + '/' + out });
+            expect(fs.existsSync(helpers.defaultOut + '/' + out)).to.be.true;
+            _.each(helpers.getFiles(helpers.defaultOut + '/' + out), function (file) {
                 expect(regex.res.test(file)).to.be.true;
             });
-            rmDir('out' + out);
         });
     });
 
-    /*it('should import js template resources into the output directory', function (done) {
-        var outputDir = 'test/resources', jsDir = outputDir + '/js';
-        return helpers.importTemplateResources({output: outputDir}, 'js'), expect(fs.existsSync(jsDir)).to.be.true,
-            _.each(helpers.getFiles(jsDir), function (file) { expect(path.extname(file)).to.equal('.js'); }),
-                childProcess.exec("rm -r " + jsDir), done();
-    });
+    it('should import js template resources into the output directory', function () {
+        var jsDir = helpers.defaultOut + '/js';
+        helpers.importTemplateResources({ out: helpers.defaultOut }, 'js');
+        expect(fs.existsSync(jsDir)).to.be.true;
+        _.each(helpers.getFiles(jsDir), function (file) {
+            expect(path.extname(file)).to.equal('.js');
+        });
+    });*/
 
+    /*
     it('should import image template resources into the output directory', function (done) {
         var outputDir = 'test/resources', imgsDir = outputDir + '/imgs';
         return helpers.importTemplateResources({output:outputDir}, 'imgs'), fs.exists(imgsDir, function (exists) {
