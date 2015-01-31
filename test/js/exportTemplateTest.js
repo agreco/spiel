@@ -10,27 +10,23 @@ var _ = require('lodash'),
     should = chai.should(),
     assert = chai.assert;
 
-describe('importTemplateResources', function () {
+describe('.exportTemplate()', function () {
 
     beforeEach(function () {
         helpers.defaultOut = 'test/resources/out';
     });
 
-    afterEach(function () {
-        if (!_.isEmpty(helpers.defaultOut)) childProcess.exec("rm -rf " + helpers.defaultOut);
-    });
-
-    it.only('should import default template resources to default output dir when [out] argument is missing', function () {
-        helpers.importTemplateResources();
+    it('should export default template to default output dir when [out] argument is missing', function () {
+        helpers.exportTemplate();
         expect(fs.existsSync(helpers.defaultOut)).to.be.true;
         _.each(helpers.getFiles(helpers.defaultOut), function (file) {
             expect(regex.res.test(file)).to.be.true;
         });
     });
 
-    it('should import default template resources into a given output directory', function () {
+    it('should export default template into a given output directory', function () {
         _.each(_.range(1, 10), function (out) {
-            helpers.importTemplateResources({ out: helpers.defaultOut + '/' + out });
+            helpers.exportTemplate({ out: helpers.defaultOut + '/' + out });
             expect(fs.existsSync(helpers.defaultOut + '/' + out)).to.be.true;
             _.each(helpers.getFiles(helpers.defaultOut + '/' + out), function (file) {
                 expect(regex.res.test(file)).to.be.true;

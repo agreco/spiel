@@ -51,4 +51,4 @@ module.exports = {
         // inSourceMap:
         // outSourceMap: "app.js.map"
     }
-}
+};

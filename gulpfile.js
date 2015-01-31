@@ -24,7 +24,7 @@ gulp.task('bower', function () {
 });
 
 gulp.task('clean', function() {
-    return gulp.src('./build-dev/**/*', { read: false }) .pipe(gulpClean(configs.clean));
+    return gulp.src(['./build-dev/**/*', './test/resources/out'], { read: false }) .pipe(gulpClean(configs.clean));
 });
 
 gulp.task('copy', function () {
@@ -65,14 +65,14 @@ gulp.task('less', function () {
 });
 
 gulp.task('express', function () {
-    express.listen('9100');
+    return express.listen('9100');
 });
 
 gulp.task('mocha', function () {
     return gulp.src('./test/js/*.js') .pipe(gulpMocha(configs.mocha));
 });
 
-gulp.task('default', ['mocha']);
+gulp.task('default', ['mocha', 'clean']);
 
 
 //gulp.task('default', ['clean', 'lint', 'browserify', 'jade', 'sprites', 'less', 'copy', 'express']);

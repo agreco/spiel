@@ -3,7 +3,6 @@ var dox = require('dox'),
     fs = require('fs'),
     _ = require('lodash'),
     markdown = require('github-flavored-markdown').parse,
-    mkdirp = require('mkdirp'),
     nopt = require('nopt'),
     path = require('path'),
     regex = require('./regex.js'),
@@ -112,11 +111,11 @@ module.exports = {
                 }) : '';
     },
 
-    importTemplateResources: function importTemplateResources (obj) {
+    exportTemplate: function exportTemplate (obj) {
         obj = { out: obj && obj.out ? obj.out : this.defaultOut, tmpl: obj && obj.tmpl ? obj.tmpl : templates.path };
         fs.statSync(obj.tmpl).isDirectory() ? (fs.mkdirSync(obj.out), _.each(fs.readdirSync(obj.tmpl), function (file) {
-            importTemplateResources({ out: path.join(obj.out, file), tmpl: path.join(obj.tmpl, file) });
-        })) : fs.writeFileSync(path.resolve(process.cwd(), obj.out), fs.readFile(path.resolve(process.cwd(), obj.tmpl)), {
+            exportTemplate({ out: path.join(obj.out, file), tmpl: path.join(obj.tmpl, file) });
+        })) : fs.writeFileSync(path.resolve(process.cwd(),obj.out), fs.readFile(path.resolve(process.cwd(),obj.tmpl)), {
             encoding: (obj.tmpl.match(regex.imgs) ? 'binary' : 'utf8')
         });
     }
