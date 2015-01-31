@@ -114,11 +114,10 @@ module.exports = {
 
     importTemplateResources: function importTemplateResources (obj) {
         obj = { out: obj && obj.out ? obj.out : this.defaultOut, tmpl: obj && obj.tmpl ? obj.tmpl : templates.path };
-        fs.existsSync(obj.out) ? void 0 : mkdirp.sync(obj.out); // TODO: Use writeStreams, remove mkdirp!
-        _.each(_.filter(this.getFiles(path.resolve(obj.tmpl), _.bind(regex.res.test, regex.res)), function (file) {
-            fs.writeFileSync(path.resolve(process.cwd(), obj.out.concat('/'+path.basename(file))), fs.readFile(file), {
-                encoding: (file.match(regex.imgs) ? 'binary' : 'utf8')
-            });
-        }, this));
+        fs.statSync(obj.tmpl).isDirectory() ? (fs.mkdirSync(obj.out), _.each(fs.readdirSync(obj.tmpl), function (file) {
+            importTemplateResources({ out: path.join(obj.out, file), tmpl: path.join(obj.tmpl, file) });
+        })) : fs.writeFileSync(path.resolve(process.cwd(), obj.out), fs.readFile(path.resolve(process.cwd(), obj.tmpl)), {
+            encoding: (obj.tmpl.match(regex.imgs) ? 'binary' : 'utf8')
+        });
     }
 };
