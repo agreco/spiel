@@ -1,6 +1,8 @@
 spiel
 =====
 
+[![Build Status](https://travis-ci.org/agreco/spiel.svg?branch=master)](https://travis-ci.org/agreco/spiel)
+
 A markdown/jsdoc weapon written as a nodejs CLI.
 
 The purpose of this documentation tool is for a requirement; to treat markdown and jsdoc as one, when writing code comments and descriptions.
