@@ -1,14 +1,12 @@
 var _ = require('lodash'),
     path = require('path'),
-    childProcess = require('child_process'),
     fs = require('fs'),
     dox = require('dox'),
     helpers = require('../../src/helpers'),
     regex = require('../../src/regex'),
     chai = require('chai'),
     expect = chai.expect,
-    should = chai.should(),
-    assert = chai.assert;
+    should = chai.should();
 
 describe('.exportTemplate()', function () {
 

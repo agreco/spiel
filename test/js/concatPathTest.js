@@ -7,8 +7,11 @@ var path = require('path'),
 
 describe('.concatPath()', function () {
 
-    it('should return empty string if first argument is not a string or is falsy', function () {
-        return expect(helpers.concatPath()).to.be.empty;
+    it('should return empty string if first argument is missing or not a string', function () {
+        expect(helpers.concatPath()).to.be.empty;
+        expect(helpers.concatPath(0)).to.be.empty;
+        expect(helpers.concatPath(true)).to.be.empty;
+        expect(helpers.concatPath([])).to.be.empty;
     });
 
     it('should return a file path with a default delimiter if the second argument is missing', function () {

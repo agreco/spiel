@@ -6,12 +6,12 @@ var dox = require('dox'),
     nopt = require('nopt'),
     path = require('path'),
     regex = require('./regex.js'),
-    rootPath = '',
     templates = require('./templates.js');
 
 module.exports = {
 
     defaultOut: 'out/resources',
+    rootPath: '',
 
     getOptions: function getOptions () {
         return nopt({ root: path, output: path, specs: path, src: path, template: path },
@@ -31,7 +31,7 @@ module.exports = {
 
     concatPath: function concatPath (file, delimiter) {
         // TODO: Add support for win paths. ATM only unix is supported & Investigate a string replacement method
-        return (file = (_.isString(file) ? (file.match(rootPath) ? file.replace(rootPath, '') : file) : void 0)) ?
+        return (file = (_.isString(file) ? (file.match(this.rootPath) ? file.replace(this.rootPath, '') : file) : '')) ?
             (_.filter(_.map(file.split('/'), function (a) { return a.replace(/^\.+/g, ''); }),
                 function (b) { return b !== ''; })).join(_.isString(delimiter) ? delimiter : '_') + '.html' : '';
     },
@@ -118,5 +118,9 @@ module.exports = {
         })) : fs.writeFileSync(path.resolve(process.cwd(),obj.out), fs.readFile(path.resolve(process.cwd(),obj.tmpl)), {
             encoding: (obj.tmpl.match(regex.imgs) ? 'binary' : 'utf8')
         });
+    },
+
+    setRootPath: function setRootPath (root) {
+        return this.rootPath = root && _.isString(root) && !_.isEmpty(root) ? root.replace(/\/?~\/+/, '/') : '';
     }
 };
