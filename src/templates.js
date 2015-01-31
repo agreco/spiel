@@ -18,11 +18,13 @@ module.exports = { // TODO: Move to jade
         return [
             '<div class="api_snippet">\n',
                 '<div class="jsdoc">\n',
-                    '<h2>'+name+'</h2>\n',
-                    tags+'\n',
+                    '<h2>'+name ? name : 'Name not available' +'</h2>\n',
+                    tags ? tags : 'tags not available' +'\n',
                 '</div>\n',
                 '<pre class="prettyprint source-code">\n',
-                    '<code>' + outline.code +'</code>\n',
+                    '<code>' 
+                        + outline ? outline.code ? outline.code : 'Code not available' : 'Code not available' +
+                    '</code>\n',
                 '</pre>\n',
             '</div>\n'
         ].join('');
