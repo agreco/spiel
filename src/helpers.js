@@ -121,21 +121,22 @@ module.exports = {
     },
 
     formatJsDoc: function formatJsDoc (outline) {
-        return outline = !_.isUndefined(outline) || _.has(outline, 'tags') &&  _.isArray(outline.tags) && 
-            outline.tags.length && outline.tags ? outline : { tags: [] }, templates.jsDoc(outline &&
-            _.has(outline, 'ctx') && _.has(outline.ctx, 'name') && _.isString(outline.ctx.name) &&
-                outline.ctx.name.length ? outline.ctx.name : '', (_.reduce(outline.tags, function (acc, tag) {
-                    return acc.push(('' + _.has(tag, 'type') ? '<strong>@' + tag.type + '</strong>\n\n': '' +
-                        _.has(tag, 'types') && _.isArray(tag.types) && tag.types[0] ? tag.types[0] + '\n\n' : '' +
-                        _.has(tag, 'name') && _.isString(tag.name) && tag.name.length ? tag.name + '\n\n' : '' +
-                        _.has(tag, 'description') && _.isString(tag.description) && tag.description.length ?
-                            tag.description + '\n\n' : ''  +
-                        _.has(tag, 'title') && _.isString(tag.title) && tag.title.length ? tag.title + '\n\n' : '' +
-                        _.has(tag, 'url') && _.isString(tag.url) && tag.url.length ? tag.url + '\n\n' : '' +
-                        _.has(tag, 'local') && _.isString(tag.local) && tag.local.length ? tag.local + '\n\n' : ''
-            )), acc; }, [])).tags.join('\n').trim(), outline);
+        return outline = _.isUndefined(outline) ? { tags: [], ctx: { name : '' } } : outline,
+            outline.tags = _.isUndefined(outline.tags) || !_.isArray(outline.tags) ? [] : outline.tags,
+                outline.ctx = _.has(outline, 'ctx') && _.has(outline.ctx, 'name') && _.isString(outline.ctx.name) &&
+                    outline.ctx.name.length ? outline.ctx : { name: '' },
+                    templates.jsDoc(outline.ctx.name, (_.reduce(outline.tags, function (acc, tag) {
+                        return acc.push(('' + _.has(tag, 'type') ? '<strong>@' + tag.type + '</strong>\n\n': '' +
+                            _.has(tag, 'types') && _.isArray(tag.types) && tag.types[0] ? tag.types[0] + '\n\n' : '' +
+                            _.has(tag, 'name') && _.isString(tag.name) && tag.name.length ? tag.name + '\n\n' : '' +
+                            _.has(tag, 'description') && _.isString(tag.description) && tag.description.length ?
+                                tag.description + '\n\n' : ''  +
+                            _.has(tag, 'title') && _.isString(tag.title) && tag.title.length ? tag.title + '\n\n' : '' +
+                            _.has(tag, 'url') && _.isString(tag.url) && tag.url.length ? tag.url + '\n\n' : '' +
+                            _.has(tag, 'local') && _.isString(tag.local) && tag.local.length ? tag.local + '\n\n' : ''
+                    )), acc; }, [])).tags.join('\n').trim(), outline);
     },
-    
+
     setRootPath: function setRootPath (root) {
         return this.rootPath = root && _.isString(root) && !_.isEmpty(root) ? root.replace(/\/?~\/+/, '/') : '';
     }

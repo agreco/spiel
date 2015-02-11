@@ -23,7 +23,7 @@ gulp.task('bower', function () {
     return bower(configs.bower) .pipe(gulp.dest('./src/scripts/libs/'));
 });
 
-gulp.task('clean', function() {
+gulp.task('clean', ['mocha'], function() {
     return gulp.src(['./build-dev/**/*', './test/resources/out'], { read: false }) .pipe(gulpClean(configs.clean));
 });
 
@@ -72,7 +72,9 @@ gulp.task('mocha', function () {
     return gulp.src('./test/js/*.js') .pipe(gulpMocha(configs.mocha));
 });
 
-gulp.task('default', ['mocha', 'clean']);
+gulp.task('test', ['clean']);
+
+gulp.task('default', ['test']);
 
 
 //gulp.task('default', ['clean', 'lint', 'browserify', 'jade', 'sprites', 'less', 'copy', 'express']);
