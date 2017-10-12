@@ -1,0 +1,47 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.7.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - gulp-mocha > mocha > debug:
+        patched: '2017-10-12T08:21:37.776Z'
+  'npm:marked:20170112':
+    - dox > marked:
+        patched: '2017-10-12T08:21:37.776Z'
+    - marked:
+        patched: '2017-10-12T08:21:37.776Z'
+  'npm:minimatch:20160620':
+    - gulp > vinyl-fs > glob-stream > minimatch:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp > vinyl-fs > glob-stream > glob > minimatch:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp > vinyl-fs > glob-watcher > gaze > globule > minimatch:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp > vinyl-fs > glob-watcher > gaze > globule > glob > minimatch:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-browserify > browserify > glob > minimatch:
+        patched: '2017-10-12T08:21:37.776Z'
+  'npm:shell-quote:20160621':
+    - gulp.spritesmith > spritesmith > phantomjssmith > shell-quote:
+        patched: '2017-10-12T08:21:37.776Z'
+  'npm:tar:20151103':
+    - gulp-imagemin > image-min > gifsicle > bin-build > download > decompress > tar:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-imagemin > image-min > jpegtran-bin > bin-build > download > decompress > tar:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-imagemin > image-min > optipng-bin > bin-build > download > decompress > tar:
+        patched: '2017-10-12T08:21:37.776Z'
+  'npm:uglify-js:20151024':
+    - jade > transformers > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-jade > jade > transformers > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
+    - jade > constantinople > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-jade > jade > constantinople > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-browserify > browserify > umd > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
+    - gulp-browserify > browserify > umd > ruglify > uglify-js:
+        patched: '2017-10-12T08:21:37.776Z'
