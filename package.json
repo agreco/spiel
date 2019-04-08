@@ -22,7 +22,7 @@
         "gulp-clean": "0.2.2",
         "gulp-coffee": "2.0.x",
         "gulp-concat": "2.1.7",
-        "gulp-imagemin": "0.1.4",
+        "gulp-imagemin": "0.5.1",
         "gulp-jade": "0.4.2",
         "gulp-jshint": "1.3.4",
         "gulp-less": "1.2.2",
@@ -36,7 +36,7 @@
         "jade": "1.3.x",
         "jsdom": "0.11.1",
         "lodash": "2.4.x",
-        "marked": "0.3.x",
+        "marked": "0.6.2",
         "mkdirp": "0.5.x",
         "nopt": "3.x"
     },
