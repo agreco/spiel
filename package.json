@@ -1,49 +1,58 @@
 {
-    "name": "spiel",
-    "version": "0.1.0",
-    "author": "Antonio Greco <agreco13@gmail.com>",
-    "description": "A markdown/jsdoc weapon written as a nodejs CLI",
-    "repository": {"type": "git", "url": "https://github.com/agreco/spiel.git"},
-    "keywords": ["cli", "markdown", "jsdoc"],
-    "bin": {
-        "spiel": "./bin/spiel.js"
-    },
-    "dependencies" : {
-        "coffee-script": "1.7.x",
-        "chai": "1.9.x",
-        "dox": "0.4.x",
-        "express": "3.4.x",
-        "github-flavored-markdown": "1.x",
-        "gulp": "3.x",
-        "gulp-bower": "0.0.3",
-        "gulp-bower": "0.0.6",
-        "gulp-browserify": "0.4.6",
-        "gulp-browserify": "0.5.0",
-        "gulp-clean": "0.2.2",
-        "gulp-coffee": "2.0.x",
-        "gulp-concat": "2.1.7",
-        "gulp-imagemin": "0.1.4",
-        "gulp-jade": "0.4.2",
-        "gulp-jshint": "1.3.4",
-        "gulp-less": "1.2.2",
-        "gulp-minify-css": "0.1.x",
-        "gulp-minify-html": "0.1.x",
-        "gulp-mocha": "0.4.1",
-        "gulp-requirejs": "0.1.x",
-        "gulp-uglify": "0.1.0",
-        "gulp-util": "2.2.9",
-        "gulp.spritesmith": "0.1.1",
-        "jade": "1.3.x",
-        "jsdom": "0.11.1",
-        "lodash": "2.4.x",
-        "marked": "0.3.x",
-        "mkdirp": "0.5.x",
-        "nopt": "3.x"
-    },
-    "scripts": {
-      "test": "gulp mocha"
-    },
-    "engines": {
-        "node": "*"
-    }
+  "name": "spiel",
+  "version": "0.1.0",
+  "author": "Antonio Greco <agreco13@gmail.com>",
+  "description": "A markdown/jsdoc weapon written as a nodejs CLI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agreco/spiel.git"
+  },
+  "keywords": [
+    "cli",
+    "markdown",
+    "jsdoc"
+  ],
+  "bin": {
+    "spiel": "./bin/spiel.js"
+  },
+  "dependencies": {
+    "coffee-script": "1.7.x",
+    "chai": "1.9.x",
+    "dox": "0.4.x",
+    "express": "4.16.0",
+    "github-flavored-markdown": "1.x",
+    "gulp": "4.0.0",
+    "gulp-bower": "0.0.6",
+    "gulp-browserify": "0.5.0",
+    "gulp-clean": "0.2.2",
+    "gulp-coffee": "2.0.x",
+    "gulp-concat": "2.1.7",
+    "gulp-imagemin": "0.5.1",
+    "gulp-jade": "0.11.0",
+    "gulp-jshint": "1.5.2",
+    "gulp-less": "1.3.7",
+    "gulp-minify-css": "0.1.x",
+    "gulp-minify-html": "0.1.x",
+    "gulp-mocha": "5.0.0",
+    "gulp-requirejs": "0.1.x",
+    "gulp-uglify": "0.1.0",
+    "gulp-util": "2.2.9",
+    "gulp.spritesmith": "0.1.1",
+    "jade": "1.8.0",
+    "jsdom": "1.0.0",
+    "lodash": "4.17.11",
+    "marked": "0.6.2",
+    "mkdirp": "0.5.x",
+    "nopt": "3.x",
+    "snyk": "^1.151.0"
+  },
+  "scripts": {
+    "test": "gulp mocha",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "snyk": true
 }
