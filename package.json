@@ -36,7 +36,7 @@
         "jade": "1.3.x",
         "jsdom": "0.11.1",
         "lodash": "2.4.x",
-        "marked": "0.3.x",
+        "marked": "0.4.0",
         "mkdirp": "0.5.x",
         "nopt": "3.x"
     },
