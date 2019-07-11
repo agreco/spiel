@@ -35,7 +35,7 @@
         "gulp.spritesmith": "0.1.1",
         "jade": "1.3.x",
         "jsdom": "0.11.1",
-        "lodash": "2.4.x",
+        "lodash": "4.17.12",
         "marked": "0.3.x",
         "mkdirp": "0.5.x",
         "nopt": "3.x"
