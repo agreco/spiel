@@ -28,7 +28,7 @@
         "gulp-less": "1.2.2",
         "gulp-minify-css": "0.1.x",
         "gulp-minify-html": "0.1.x",
-        "gulp-mocha": "0.4.1",
+        "gulp-mocha": "7.0.0",
         "gulp-requirejs": "0.1.x",
         "gulp-uglify": "0.1.0",
         "gulp-util": "2.2.9",
